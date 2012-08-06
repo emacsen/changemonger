@@ -21,3 +21,12 @@ def getChangeset(id):
 def getChange(id):
     url = 'http://' + server + '/api/0.6/changeset/' + str(id) + '/download'
     return urllib2.urlopen(url).read()
+
+def getWaysForNode(nodeid):
+    url = 'http://' + server + '/api/0.6/node' + str(id) + '/ways':
+    return urllib2.urlopen(url).read()
+
+def getRelationsforElement(otype, oid):
+    url = 'http://' + server + '/api/0.6/' + otype + '/' + str(oid) + '/relations'
+    return urllib2.urlopen(url).read()
+
