@@ -18,6 +18,7 @@ class Feature:
         self.tags = []
         self.categories = []
         self.types = None
+        self.use_name = True
 
     @property
     def plural(self):

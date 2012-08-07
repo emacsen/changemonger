@@ -45,6 +45,22 @@ def show_changeset(changesetid):
         eles = []
         for i in cset['actions']:
             eles.extend(i[1])
+    print "%d elements" % len(eles)
+    add_local_way_references(eles)
+    print "%d elements after local way references" % len(eles)
+    add_local_relation_references(eles)
+    print "%d elements after local relation references" % len(eles)
+    add_remote_ways(eles)
+    print "%d elements after remote way refrences" % len(eles)
+    add_remote_relations(eles)
+    print "%d elements after remote relation references" % len(eles)
+    eles = remove_unnecessary_items(eles)
+    print "%d elements after unnecessary items removal" % len(eles)
+    eles = sort_elements(eles)
+    print "%d elements after sorting" % len(eles)
+    ## # We need to unique the features somehow
+    ## eles = unique_elements2(eles)
+    ## print "%d elements are uniquing elements" % len(eles)
     ele_features = zip(eles, db.matchEach(eles))
     sorted_ef = sort_by_num_features(ele_features)
     grouped_features = feature_grouper(sorted_ef)

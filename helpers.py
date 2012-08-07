@@ -6,16 +6,66 @@ import urllib2
 import yaml
 from features import Feature
 import inflect
-import elements
-
+from pprint import pprint
 p = inflect.engine()
+
+
+def common_name(ele):
+    """Take an element and return its common name"""
+    if ele['tags'].has_key('brand'):
+        a = p.a(ele['tags']['brand'])
+        return("%u %u" % (a, ele['tags']['brand']))
+    elif ele['tags'].has_key('operator'):
+        a = p.a(ele['tags']['operator'])
+        return("%u %u" % (a, ele['tags']['operator']))
+    elif ele['tags'].has_key('name'):
+        return ele['tags']['name']
+    else:
+        return u'unnamed'
+
+def display_name(ele, feature):
+    """Takes an element and feature and returns it's displayable
+    name
+
+    """
+    if not ele['tags'] or not feature.use_name:
+        return u"%s %" % (p.a(feature.name), feature.name)
+    elif ( 'name' in ele['tags'].keys() or
+         'brand' in ele['tags'].keys() or
+         'operator' in ele['tags'].keys()):
+        return common_name(ele)
+    else:
+        return u"an unnamed " + feature.name
+
+
+def dict2feature(d):
+    """Takes a dictionary in (from yaml) and returns a Feature"""
+    f = Feature(d['feature'])
+    f.tags = d.get('tags', [])
+    f.categories = d.get('categories', [])
+    f.types = d.get('types', None)
+    # These are functions by default, so don't use the get method
+    if d.has_key('plural'):
+        f.plural = d['plural']
+    if d.has_key('precision'):
+        f.precision = d['precision']
+    return f
+    if d.has_key['use_name']:
+        f.use_name = d['use_name']
+
+def get_user(ele):
+    """Takes an element and returns a displable username"""
+    if ele.has_key('user'):
+        return ele['user']
+    else:
+        return 'User %s' % (str(changeset['uid']))
 
 def populate_features_in_yaml(database, yamlfile):
     with open(yamlfile) as fd:
         data = fd.read()
         yamldata = yaml.load(data)
         for item in yamldata:
-            feature = elements.dict2feature(item)
+            feature = dict2feature(item)
             database.addFeature(feature)
 
 def get_feature_or_404(element_id):
@@ -111,9 +161,14 @@ def sort_elements(coll):
     nodes = [e for e in coll if e['type'] == 'node']
     l = []
     def sortfn(a, b):
-        r = a['id'] - b['id']
+        if a['id'] < b['id']:
+            r = -1
+        elif a['id'] > b['id']:
+            r = 1
+        else:
+            r = 0
         if r == 0:
-            return a['version'] - b['version']
+            return int(a['version']) - int(b['version'])
         else:
             return r
     l.extend(sorted(nodes, cmp=sortfn))
@@ -125,8 +180,11 @@ def unique_elements(coll):
     """Takes a sorted collection of elements. Returns those elements
     uniqued by version. Also removes dupes.
     """
+    ### UNUSED BECAUSE BROKEN!
+    if not coll:
+        return
     i = 0
-    while i <= len(coll):
+    while i <= (len(coll) - 1):
         ele = coll[i]
         next_ele = coll[i + 1]
         if ( ele['type'] == next_ele['type'] and
@@ -136,6 +194,28 @@ def unique_elements(coll):
         else:
             i += 1
         
+def unique_elements2(coll):
+    """Takes a sorted collection of elements. Returns those elements
+    uniqued by version. Also removes dupes.
+    """
+    prev = None
+    l = []
+    for idx, ele in enumerate(coll):
+        try:
+            if not prev:
+                continue
+            if ( ele['type'] == prev['type'] and
+                 ele['id'] == prev['id'] and
+                 prev['version'] <= ele['version']):
+                pass
+            else:
+                l.append(ele)
+                prev = ele
+        except IndexError:
+            # This is fine, we'll exit out the next go
+            pass
+    return l
+
 def remove_unnecessary_items(coll):
     """Takes a collection of elements and removes those which are
     tagless but have either a way reference or a relation reference
@@ -165,14 +245,14 @@ def remove_unnecessary_items(coll):
             ways = [way for way in parseWay(root.findall('way'))]
         relations = [rel for rel in
                      parseRelation(root.findall('relation'))]
-        
-        if not ways or not relations
+        if not ways or not relations:
                     # This is significant
                     l.append(ele)
-                for way in ways:
-                    # We need to be sure that this way isn't already accounted for (because we're adding them
-                for relation in relations:
-                    l.append(relation)
+        for way in ways:
+            # We need to be sure that this way isn't already accounted
+            # for (because we're adding them
+            for relation in relations:
+                l.append(relation)
                 
 
 def add_local_way_references(coll):
@@ -198,7 +278,8 @@ def add_local_relation_references(coll):
             id = ele['id']
             # We'll use a list comprehension here even though it
             # should only return a single element
-            for ele in [e in coll if e['type'] == type and e['id'] == id]:
+            for ele in [e for e in coll if (e['type'] == type
+                                            and e['id'] == id)]:
                 if ele.has_key('_relations'):
                     ele['_relations'].append(rel['id'])
                 else:
@@ -208,33 +289,59 @@ def add_remote_ways(coll):
     """Takes a collection of elements and adds way references for
     nodes if they don't have tags, or existing ways
     """
+    newways = []
     nodes = [ele for ele in coll if (ele['type'] == 'node'
                                      and not ele['tags']
                                      and not ele.has_key('_ways'))]
     for node in nodes:
-        # We don't care about duplicate ways for now. We'll de-dup later
-        data = getWaysforNode(node['id'])
+        if node['tags'] or node.has_key('_ways'):
+            # It only needs to have one way for us to care. We're not
+            # looking at all the object relationships, just the first
+            # right now
+            continue
+        data = osmapi.getWaysforNode(node['id'])
         xml = et.XML(data)
-        root = xml.find('osm')
-        ways = [way for way in parser.parseWay(root.findall('way'))]
+        ways = [parser.parseWay(way) for way in xml.findall('way')]
         for way in ways:
             coll.append(way)
-            if node.has_key('_ways'):
-                node['_ways'].append(way['id'])
-            else:
-                node['_ways'] = [way['id']]
+            # This is a lot of looping we could avoid if we had an index...
+            [addWayCallbackToNode(n, way['id']) for n in nodes if n['id'] in way['nd']]
 
 def add_remote_relations(coll):
     elements = [ele for ele in coll if (not ele['tags']
                                         and not ele.has_key('_relations'))]
+    nodes = [ele for ele in coll if ele['type'] == 'node']
+    ways = [ele for ele in coll if ele['type'] == 'way']
+    relations = [ele for ele in coll if ele['type'] == 'relation']
     for ele in elements:
-        data = getRelationsforElement(ele['type'], ele['id'])
+        if ele['tags'] or ele.has_key('_ways') or ele.has_key('_relations'):
+            continue
+        data = osmapi.getRelationsforElement(ele['type'], ele['id'])
         xml = et.XML(data)
         root = xml.find('osm')
-        relations = [rel for rel in parser.parseRelation(root.findall('relation'))]
-        for rel in relations:
+        rels = [parser.parseRelation(rel) for rel in xml.findall('relation')]
+        for rel in rels:
             coll.append(rel)
-            if ele.has_key('_relations'):
-                ele['_relations'].append(rel['id'])
-            else:
-                ele['_relations'] = [rel['id']]
+            for member in rel['members']:
+                mid = member['ref']
+                mtype = member['type']
+                mobj = None
+                if mtype == 'node':
+                    mobj = [m for m in nodes if m['id'] == mid][0]
+                elif mtype == 'way':
+                    mobj =  [m for m in nodes if m['id'] == mid][0]
+                else:
+                    mobj = [m for m in relations if m['id'] == mid][0]
+                addRelationCallbackToElement(mobj)
+
+def allRelationCallbackToElement(ele, relid):
+    if ele.has_key('_relation'):
+        ele['_relations'].append(relid)
+    else:
+        ele['_ways'] = [relid]
+
+def addWayCallbackToNode(node, wayid):
+    if node.has_key('_ways'):
+        node['_ways'].append(wayid)
+    else:
+        node['_ways'] = [wayid]
