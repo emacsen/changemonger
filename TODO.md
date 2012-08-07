@@ -1,12 +1,16 @@
 # TODO ITEMS for OSM Classifier
 
-1. Support "partof" calls for non-tagged items (ie nodes or ways)
+* Support more complex feature grouping
 
-2. Support more complex feature grouping
+*  Convert yaml format to use mongodb
 
-3. Convert yaml format to use mongodb
+* Build UI to mongodb
 
-4. Build UI to mongodb
+* Support adjectives instead of detailed features (ie historic,
+  building)
 
-5. Support adjectives instead of detailed features (ie historic)
+* Support locations (ie "in New York City")
+
+* Start supporting object diffing
+
 
