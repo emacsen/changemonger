@@ -29,11 +29,12 @@ class Feature:
         return len(self.tags)
 
     def match(self, element):
-        if self.types and element['type'] in self.types:
-            eltags = dict2list(element['tags'])
-            for tag in self.tags:
-                if not tag in eltags:
-                    return False
+        if self.types:
+            if not element['type'] in self.types:
+                return False
+        for tag in self.tags:
+            if not tag in element['_tags']:
+                return False
             return True
         else:
             return False
@@ -166,8 +167,12 @@ class FeatureDB:
         features = self._getFeatureList(ele['type'])
         match = None
         match_val = -10
+        if not ele.has_key('_tags'):
+            ele['_tags'] = dict2list(ele['tags'])
         for feature in features:
+            print "%d %s %f" % (match_val, feature.name, feature.precision)
             if feature.precision > match_val and feature.match(ele):
+                print "Matched"
                 match = feature
                 match_val = feature.precision
         if match:
@@ -178,6 +183,8 @@ class FeatureDB:
                     return feature
 
     def matchAllSolo(self, ele):
+        if not ele.has_key('_tags'):
+            ele['_tags'] = dict2list(ele['tags'])
         r = []
         features = self._getFeatureList(ele['type'])
         r.extend([f for f in features if f.match(ele)])

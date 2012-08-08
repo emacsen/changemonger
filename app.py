@@ -1,11 +1,43 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 app = Flask(__name__)
 app.debug = True
 from helpers import *
 from features import FeatureDB
 
+from flask import Flask, render_template
+from werkzeug import ImmutableDict
+ 
+class FlaskWithHamlish(Flask):
+    jinja_options = ImmutableDict(
+        extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_',
+                    'hamlish_jinja.HamlishExtension'] )
+ 
+app = FlaskWithHamlish(__name__)
+app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
+
 db = FeatureDB()
 populate_features_in_yaml(db, 'features.yaml')
+
+@app.route('/')
+def index():
+    return render_template('index.haml')
+
+@app.route('/node/')
+def display_node():
+    if request.args.has_key('oid'):
+        eleid = 'node:' + request.args['oid']
+        ele = get_feature_or_404(eleid)
+        features = db.matchAllSolo(ele)
+        return render_template('node_details.haml',
+                               name = display_name(ele, features[0]),
+                               node = ele,
+                               features = features)
+    else:
+        return render_template('node.haml', title="Node")
+
+@app.route('/features')
+def show_features():
+    return render_template('features.haml', features = db._features)
 
 @app.route('/dbstats')
 def show_stats():
@@ -68,7 +100,7 @@ def show_changeset(changesetid):
     english_list =  grouped_to_english(sorted_features)
     return "%s %s %s" % (user, action, english_list)
 
-
 if __name__ == '__main__':
+    app.debug = True
     app.run()
     

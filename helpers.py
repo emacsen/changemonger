@@ -9,7 +9,6 @@ import inflect
 from pprint import pprint
 p = inflect.engine()
 
-
 def common_name(ele):
     """Take an element and return its common name"""
     if ele['tags'].has_key('brand'):
@@ -29,7 +28,7 @@ def display_name(ele, feature):
 
     """
     if not ele['tags'] or not feature.use_name:
-        return u"%s %" % (p.a(feature.name), feature.name)
+        return u"%s" % (p.a(feature.name))
     elif ( 'name' in ele['tags'].keys() or
          'brand' in ele['tags'].keys() or
          'operator' in ele['tags'].keys()):
