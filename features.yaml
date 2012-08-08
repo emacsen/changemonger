@@ -64,6 +64,7 @@
   plural: ATMs
   categories: [amenity]
   tags: [amenity=atm]
+  use_name: False
 
 - feature: bank
   categories: [amenity]
@@ -74,6 +75,7 @@
   tags:
     - amenity=recycling
     - recycling_type=container
+  use_name: False
 
 - feature: recycling center
   categories: [waste facility]
@@ -96,54 +98,65 @@
 - feature: post box
   categories: amenity
   tags: [amenity=post_box]
+  use_name: False
 
 - feature: trash can
   categories: [waste containers]
   tags: [amenity=waste_basket]
+  use_name: False
 
 - feature: toilets
   categories: [amenity]
   tags: [amenity=toilets]
+  use_name: False
 
 - feature: water fountain
   categories: [amenity]
   tags: [amenity=drinking_water]
+  use_name: False
 
 - feature: shelter
   categories: [shelter]
   tags: [amenity=shelter]
+  use_name: False
 
 - feature: picnic shelter
   categories: [shelter]
   tags:
     - amenity=shelter
     - shelter_type=picnic_shelter
+  use_name: False
 
-- feature: public transport
+- feature: public transport shelter
   categories: [shelter]
   tags:
     - amenity=shelter
     - shelter_type=public_transport
+  use_name: False
 
 - feature: weather shelter
   categories: [shelter]
   tags:
     - amenity=shelter
     - shelter_type=weather_shelter
+  use_name: False
 
 - feature: wildlife hide
   categories: [shelter]
   tags:
     - amenity=shelter
     - shelter_type=wildlife_hide
+  use_name: False
 
 - feature: barbecue
   categories: [amenity]
   tags: [amenity=bbq]
+  use_name: False
 
 - feature: hunting stand
   categories: [sports]
   tags: [amenity=hunting_stand]
+  use_name: False
 
 - feature: park bench
   categories: [amenity]
@@ -205,6 +218,7 @@
 - feature: building
   types: [way]
   tags: [building=yes]
+  precision: .5
 
 - feature: parking aisle
   types: [way]
