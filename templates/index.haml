@@ -1,0 +1,25 @@
+-extends "base.haml"
+-set title = "Changemonger"
+-block content:
+  %h1 << Changemonger
+  %h2 << Making sense out of OpenStreetMap
+
+  %form action="/node" method="get"
+    %label << Node
+    %input type="text" name="oid"
+    %input type="submit" style="visibility: hidden;"
+
+  %form action="/way" method="get"
+    %label << Way
+    %input type="text" name="oid"
+    %input type="submit" style="visibility: hidden;"
+
+  %form action="/relation" method="get"
+    %label << Relation
+    %input type="text" name="oid"
+    %input type="submit" style="visibility: hidden;"
+
+  %form action="/changeset" method="get"
+    %label << Changeset
+    %input type="text" name="oid"
+    %input type="submit" style="visibility: hidden;"

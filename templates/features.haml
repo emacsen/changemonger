@@ -1,0 +1,11 @@
+-extends "base.haml"
+-set title = "Features"
+-block content:
+  %h1 << Features
+  -for feature in features:
+    %li
+      {{feature.name}}
+      -for tag in feature.tags:
+        %br
+        {{tag}}
+        

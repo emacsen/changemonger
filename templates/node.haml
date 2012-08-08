@@ -1,0 +1,10 @@
+-extends "base.haml"
+-set title = "Node"
+-block content:
+  %h1 << Node
+  %p
+    Enter the Node ID of the node you would like to query
+  %form action="/node" method="get"
+    %label << Node ID
+    %input type="text" name="oid"
+    %input type="submit" style="visibility: hidden;"

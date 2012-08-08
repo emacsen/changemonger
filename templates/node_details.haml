@@ -1,0 +1,9 @@
+-extends "base.haml"
+-set title = "Node details"
+-block content:
+  %h1 << Node {{node['id'] }}
+  %h2 << {{ name }}
+  %p << Object matched to
+  %ul
+    -for feature in features:
+      %li << {{feature.name}} ({{feature.precision}})
