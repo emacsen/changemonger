@@ -22,7 +22,7 @@ populate_features_in_yaml(db, 'features.yaml')
 def index():
     return render_template('index.haml')
 
-@app.route('/node/')
+@app.route('/node')
 def display_node():
     if request.args.has_key('oid'):
         oid = request.args['oid']
