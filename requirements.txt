@@ -1,0 +1,7 @@
+Fabric==1.4.3
+Flask==0.9
+Hamlish-Jinja==0.2.0
+Jinja2==2.6
+PyYAML==3.10
+inflect==0.2.3
+pymongo==2.2.1
