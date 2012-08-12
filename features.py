@@ -22,7 +22,10 @@ def pluralize(feature):
     return feature.get('plural', p.plural(feature['name']))
 
 def precision(feature):
-    return feature.get('precision', len(feature['tags']))
+    ### Either use the explicit precision value or the number of tags * 2
+    ### (this way we know that odd numbers are automatically set, ie
+    ### building=yes is 1
+    return feature.get('precision', len(feature['tags']) * 2)
 
 def makeMagicFeatures():
     features = []
