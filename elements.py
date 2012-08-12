@@ -1,5 +1,4 @@
 """Functions related to working with elements and collections of elements"""
-from features import Feature
 import inflect
 
 p = inflect.engine()
@@ -31,22 +30,6 @@ def display_name(ele, feature):
         return common_name(ele)
     else:
         return u"an unnamed " + feature.name
-
-
-def dict2feature(d):
-    """Takes a dictionary in (from yaml) and returns a Feature"""
-    f = Feature(d['feature'])
-    f.tags = d.get('tags', [])
-    f.categories = d.get('categories', [])
-    f.types = d.get('types', None)
-    # These are functions by default, so don't use the get method
-    if d.has_key('plural'):
-        f.plural = d['plural']
-    if d.has_key('precision'):
-        f.precision = d['precision']
-    return f
-    if d.has_key['use_name']:
-        f.use_name = d['use_name']
 
 def get_user(ele):
     """Takes an element and returns a displable username"""
