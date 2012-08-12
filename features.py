@@ -1,196 +1,178 @@
+"""Contains functions related to Changemonger features"""
+
 import inflect
-from functools import cmp_to_key
+from sets import Set
+from pymongo import Connection
+connection = Connection()
 
 p = inflect.engine()
 
 def dict2list(d):
+    """Function that turns a dictionary into a list of key=value strings"""
     l = []
-    for k,v in d.items():
-        l.append(u'%s=%s' % (k,v))
+    for k, v in d.items():
+        l.append(u'%s=%s' % (k, v))
     return l
 
 def compare_precision(a, b):
-    return b.precision - a.precision
+    return precision(b) - precision(a)
 
-class Feature:
-    def __init__(self, name):
-        self.name = name
-        self.tags = []
-        self.categories = []
-        self.types = None
-        self.use_name = True
+def pluralize(feature):
+    """Pluralize a feature (or category)"""
+    return feature.get('plural', p.plural(feature['name']))
 
-    @property
-    def plural(self):
-        return p.plural(self.name)
-
-    @property
-    def precision(self):
-        return len(self.tags)
-
-    def match(self, element):
-        if self.types:
-            if not element['type'] in self.types:
-                return False
-        for tag in self.tags:
-            if not tag in element['_tags']:
-                return False
-            return True
-        else:
-            return False
-
-    def __str__(self):
-        return self.name
-
-    def __unicode__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
-
-class Category(Feature):
-    def __init__(self,  name):
-        self.name = name
-        self.features = []
-        self.index = {}
-        self.precision = 0
-
-    def register(self, feature):
-        if not self.index.has_key(feature.name):
-            self.index[feature.name] = feature
-            self.features.append(feature)
-        
-    def match(self, element):
-        for feature in self.features:
-            if feature.match(element):
-                return True
-        return False
+def precision(feature):
+    return feature.get('precision', len(feature['tags']))
 
 def makeMagicFeatures():
-    l = []
-    utag_node = Feature("untagged node")
-    utag_node.precision = 0
-    def match(e):
-        if e['type'] == 'node' and len(e['tags']) == 0:
+    features = []
+    def untagged(ele):
+        if len(ele['tags']) == 0:
             return True
-    utag_node.match = match
-    l.append(utag_node)
 
-    utag_way = Feature("untagged way")
-    utag_way.precision = 0
-    def match(e):
-        if e['type'] == "way" and len(e['tags']) == 0:
-            return True
-    utag_way.match = match
-    l.append(utag_way)
-
-    utag_rel = Feature("untagged relation")
-    utag_rel.precision = 0
-    def match(e):
-         if e['type'] == "relation" and len(e['tags']) == 0:
-             return True
-    utag_way.match = match
-    l.append(utag_rel)
-
-    node = Feature("unidentified node")
-    node.precision = -1
-    def match(e):
-        if e['type'] == "node":
-            return True
-    node.match = match
-    l.append(node)
-
-    way = Feature("unidentified way")
-    way.precision = -1
-    def match(e):
-        if e['type'] == "way":
-            return True
-    way.match = match
-    l.append(way)
-
-    rel = Feature("unidentified relation")
-    rel.precision = -1
-    def match(e):
-        if e['type'] == "relation":
-            return True
-    rel.match = match
-    l.append(rel)
-
-    return l
+    def always(ele):
+        return True
+    features.append({'name': 'untagged node',
+                     'ama': 'magic',
+                     'types': ['node'],
+                     'precision': 0,
+                     'match': untagged})
+    features.append({'name': 'untagged way',
+                     'types': ['way'],
+                     'ama': 'magic',
+                     'precision': 0,
+                     'match': untagged})
+    features.append({'name': 'untagged relation',
+                     'types': ['relation'],
+                     'ama': 'magic',
+                     'precision': 0,
+                     'match': untagged})
+    features.append({'name': 'unidentified node',
+                     'types': ['node'],
+                     'ama': 'magic',
+                     'precision': -1,
+                     'match': always})
+    features.append({'name': 'unidentified way',
+                     'types': ['way'],
+                     'ama': 'magic',
+                     'precision': -1,
+                     'match': always})
+    features.append({'name': 'unidentified relation',
+                     'types': ['relation'],
+                     'ama': 'magic',
+                     'precision': -1,
+                     'match': always})
+    return features
 
 class FeatureDB:
-    def __init__(self):
+    def __init__(self, db = connection['changemonger']):
+        self._db = db
+        self._features = db.features
         self._magic = makeMagicFeatures()
-        self._categories = []
-        self._categories_index = {}
-        self._features = []
-        self._node_features = []
-        self._way_features = []
-        self._rel_features = []
 
-    def addCategory(self, category):
-        self._categories_index[category.name] = category
-        self._categories.append(category)
+    def matchFeature(self, feature, ele):
+        if feature.has_key('types'):
+            if not ele['type'] in feature['types']:
+                return False
+        for tag in feature['tags']:
+            if not tag in ele['_tags']:
+                return False
+            return feature
+        return False
 
-    def addFeature(self, feature):
-        self._features.append(feature)
-        if feature.types:
-            if "node" in feature.types:
-                self._node_features.append(feature)
-            if "way" in feature.types:
-                self._way_features.append(feature)
-            if "relation" in feature.types:
-                self_rel_features.append(feature)
+    def matchMagic(self, feature, ele):
+        # magic features act like normal features, but they have a
+        # match function stored as an anonymous function in their
+        # 'match' key
+        if feature.has_key('types'):
+            if not ele['type'] in feature['types']:
+                return False
+        if feature['match'](ele):
+            return feature
+
+    def matchCategory(self, category, ele):
+        for feature_id in category['features']:
+            feature = self._features({'_id': feature_id})
+            if self.matchFeature(feature, ele):
+                return category
+
+    def addCategory(self, name):
+        category = self._features.find_one({'name': name,
+                                            'ama': 'category'})
+        if category:
+            return category
         else:
-            # A feature with no listed types is applicable to all types
-            self._node_features.append(feature)
-            self._way_features.append(feature)
-            self._rel_features.append(feature)
+            return self._features.insert({'name': name,
+                                          'ama': 'category',
+                                          'precision': 0,
+                                          'features': []})
 
-        for category_name in feature.categories:
-            if self._categories_index.has_key(category_name):
-                self._categories_index[category_name].register(feature)
+    def registerFeaturetoCategory(self, category, feature):
+        if category.has_key('features'):
+            if feature['_id'] in category['features']:
+                return
             else:
-                cat = Category(category_name)
-                cat.register(feature)
-                self.addCategory(cat)
+                category['features'].append(feature['_id'])
+        else:
+            category['features'] = [feature['_id']]
+        self._features.save(category)
 
-    def _getFeatureList(self, ele_type):
-        if ele_type == 'node':
-            return self._node_features
-        elif ele_type == 'way':
-            return self._way_features
-        elif ele_type == 'relation':
-            return self._rel_features
+    def modifyCategory(self, category):
+        return self._features.save(category)
 
+    def addFeature(self, name, tags, category_names = []):
+        categories = [self.addCategory(cat_name) for cat_name in category_names]
+        feature = {'name': name,
+                   'tags': tags,
+                   'categories': categories}
+        feature_id = self._features.insert(feature)
+        for cat_id in categories:
+            category = self._features.find_one({'_id': cat_id})
+            if category.has_key('features'):
+                category['features'].append(feature_id)
+            else:
+                category['features'] = [feature_id]
+            self._features.save(category)
+    
     def matchBestSolo(self, ele):
-        features = self._getFeatureList(ele['type'])
+        """Returns the best matching feature for an element"""
+        # This function is not optimized in any way. Ideally it should
+        # run in mongodb or maybe even some other way, but it's quick
+        # and dirty and it works.
         match = None
         match_val = -10
-        if not ele.has_key('_tags'):
-            ele['_tags'] = dict2list(ele['tags'])
-        for feature in features:
-            print "%d %s %f" % (match_val, feature.name, feature.precision)
-            if feature.precision > match_val and feature.match(ele):
-                print "Matched"
+        for feature in self._features.find():
+            if (precision(feature) > match_val
+                and self.matchFeature(feature, ele)):
                 match = feature
-                match_val = feature.precision
-        if match:
-            return match
-        else:
+                match_val = precision(feature)
+        if not match:
+            # The object doesn't match the normal features, we'll have
+            # to test it against the base "magic" features.
             for feature in self._magic:
-                if feature.precision > match_val and feature.match(ele):
-                    return feature
+                if (precision(feature) > match_val
+                     and self.matchMagic(feature, ele)):
+                    # We rely on the fact that magic features are
+                    # always listed in order of precision
+                    return match
 
     def matchAllSolo(self, ele):
-        if not ele.has_key('_tags'):
-            ele['_tags'] = dict2list(ele['tags'])
-        r = []
-        features = self._getFeatureList(ele['type'])
-        r.extend([f for f in features if f.match(ele)])
-        r.extend([c for c in self._categories if c.match(ele)])
-        r.extend([f for f in self._magic if f.match(ele)])
-        return sorted(r, cmp=compare_precision)
+        """Return all the matching features and categories for an
+        element, sorted by precision
+        """
+        category_ids = Set()
+        features = [feature for feature in self._features.find()
+                    if self.matchFeature(feature, ele)]
+        for feature in features:
+            category_ids.add(feature['categories'])
+        # We don't need to check the categories manually, this is
+        # faster
+        categories = [self._features.find_one({'_id': cat_id})
+                      for cat_id in category_ids]
+        magic = [mag for mag in self._magic if self.matchMagic(mag, ele)]
+        features.extend(categories)
+        features.extend(magic)
+        return(sorted(features, cmp=compare_precision))
 
     def matchEach(self, coll):
         return [self.matchAllSolo(ele) for ele in coll]
