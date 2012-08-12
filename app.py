@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 app.debug = True
-from helpers import populate_features_in_yaml, get_element_or_404, \
-    get_changeset_or_404, sentence_from_changeset
+from helpers import get_element_or_404, get_changeset_or_404, \
+    sentence_from_changeset
 from elements import common_name, display_name
 from features import FeatureDB
 from werkzeug import ImmutableDict
@@ -16,7 +16,6 @@ app = FlaskWithHamlish(__name__)
 app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
 
 db = FeatureDB()
-populate_features_in_yaml(db, 'features.yaml')
 
 @app.route('/')
 def index():
