@@ -10,16 +10,7 @@ p = inflect.engine()
 
 from elements import display_name, get_user, add_local_way_references, \
     add_local_relation_references, add_remote_ways, add_remote_relations, \
-    sort_elements, sort_by_num_features, feature_grouper, sort_grouped, \
-    dict2feature
-
-def populate_features_in_yaml(database, yamlfile):
-    with open(yamlfile) as fd:
-        data = fd.read()
-        yamldata = yaml.load(data)
-        for item in yamldata:
-            feature = dict2feature(item)
-            database.addFeature(feature)
+    sort_elements, sort_by_num_features, feature_grouper, sort_grouped
 
 def get_element_or_404(o_type, oid):
     api = { 'node': osmapi.getNode,
