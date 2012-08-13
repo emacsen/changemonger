@@ -1,4 +1,4 @@
-"""Contains functions related to Changemonger features"""
+"""Contains functions related to Changemonger features for a mongodb backend"""
 
 import inflect
 from sets import Set
