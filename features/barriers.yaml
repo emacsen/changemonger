@@ -1,0 +1,33 @@
+---
+- name: bollard
+  categories: barrier
+  tags: barrier=bollard
+
+- name: city wall
+  categories: barrier
+  tags: barrier=city_wall
+
+- name: ditch
+  categories: barrier
+  tags: barrier=ditch
+
+- name: fence
+  categories: barrier
+  tags: barrier=fence
+
+- name: gate
+  categories: barrier
+  tags: barrier=gate
+
+- name: hedge
+  categories: barrier
+  tags: barrier=hedge
+
+- name: retaining wall
+  categories: barrier
+  tags: barrier=retaining_wall
+
+- name: wall
+  categories: barrier
+  tags: barrier=wall
+

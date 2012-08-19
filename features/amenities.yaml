@@ -1,0 +1,190 @@
+---
+- name: above ground parking lot
+  categories: [parking facility, amenity]
+  tags: [amenity=parking, parking=surface]
+
+- name: ATM
+  plural: ATMs
+  categories: [amenity]
+  tags: [amenity=atm]
+  named: False
+
+- name: bank
+  categories: [amenity]
+  tags: [amenity=bank]
+
+- name: bar
+  tags: amenity=bar
+  categories: food and drink establishment
+
+- name: barbecue
+  categories: amenity
+  tags: amenity=bbq
+
+- name: cafe
+  categories: food and drink establishment
+  tags: amenity=cafe
+
+- name: college
+  categories: school
+  tags: amenity=college
+
+- name: emergency phone
+  categories: [amenity]
+  tags: [amenity=emergency_phone]
+
+- name: fast food establishment
+  categories: food and drink establishment
+  tags: amenity=fast_food
+
+- name: fountain
+  categories: [amenity]
+  tags: [amenity=fountain]
+
+- name: fire station
+  categories:
+    - emergenency facilitiy
+    - municpial building
+  tags: amenity=fire_station
+
+- name: hospital
+  categories:
+    - amenity
+    - health facility
+    - emergency facility
+    - municipal building
+  tags: amenity=hospital
+
+- name: hunting stand
+  categories: [sports]
+  tags: [amenity=hunting_stand]
+  named: False
+
+- name: kindergarten
+  categories: [school]
+  tags: [amenity=kindergarten]
+
+- name: library
+  categories:
+  - amenity
+  - municipal building
+  tags: amenity=library
+
+- name: park bench
+  categories: [amenity]
+  tags: [amenity=bench]
+
+- name: picnic shelter
+  categories: [shelter]
+  tags:
+    - amenity=shelter
+    - shelter_type=picnic_shelter
+  named: False
+
+- name: police station
+  categories:
+    - emergency facility
+    - municipal building
+  tags: amenity=police_station
+
+- name: post box
+  categories: amenity
+  tags: [amenity=post_box]
+  named: False
+
+- name: post office
+  categories:
+    - amenity
+    - municipal facility
+    - building
+  tags: amenity=post_office
+
+- name: pub
+  tags: [amenity=pub]
+  categories: food and drink establishment
+
+- name: public building
+  types:
+    - way
+    - relation
+  tags:
+    - amenity=public_building
+    - building=yes
+
+- name: public telephone
+  categories: [amenity]
+  tags: [amenity=telephone]
+
+- name: public transport shelter
+  categories: [shelter]
+  tags:
+    - amenity=shelter
+    - shelter_type=public_transport
+  named: False
+
+- name: recycling center
+  categories: [waste facility]
+  tags:
+    - amenity=recycling
+    - recycling_type=centre
+
+- name: recycling container
+  categories: [waste container]
+  tags:
+    - amenity=recycling
+    - recycling_type=container
+  named: False
+
+- name: restaurant
+  categories: food and drink establishment
+  tags: amenity=restaurant
+
+- name: school
+  categories: [school]
+  tags: [amenity=school]
+
+- name: shelter
+  categories: [shelter]
+  tags: [amenity=shelter]
+  named: False
+
+- name: toilets
+  categories: [amenity]
+  tags: [amenity=toilets]
+  named: False
+
+- name: town hall
+  tags: amenity=town_hall
+  categories:
+    - building
+    - municipal facility
+
+- name: trash can
+  categories: [waste containers]
+  tags: [amenity=waste_basket]
+  named: False
+
+- name: weather shelter
+  categories: [shelter]
+  tags:
+    - amenity=shelter
+    - shelter_type=weather_shelter
+  named: False
+
+- name: wildlife hide
+  categories: [shelter]
+  tags:
+    - amenity=shelter
+    - shelter_type=wildlife_hide
+  named: False
+
+- name: swimming pool
+  categories: [sport facility, amenity]
+  tags: [amenity=swimming_pool]
+
+- name: university
+  categories: school
+  tags: amenity=university
+
+- name: vending machine
+  tags: [amenity=vending_machine]

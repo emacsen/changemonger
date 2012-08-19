@@ -1,0 +1,94 @@
+- name: place of worship
+  tags: amenity=place_of_worship
+
+- name: Animist Temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=animist
+
+- name: Bahai temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=bahai
+
+- name: gurdwara
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=sikh
+
+- name: Hindu temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=hindu
+
+- name: Jain temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=jain
+
+- name: synagogue
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=jewish
+
+- name: multifaith church
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=multifaith
+
+- name: mosque
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=muslim
+
+- name: Pagan temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=pagan
+
+- name: Pastafarian Bowl
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=pastafarian
+
+- name: Scientologist church
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=scientology
+
+- name: Shinto temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=shinto
+
+- name: Spiritualist temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=temple
+
+- name: Unitarian church
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=unitarian
+
+- name: Zoroastrian temple
+  category: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=zoroastrian
+
+

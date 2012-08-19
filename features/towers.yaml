@@ -1,0 +1,31 @@
+---
+- name: tower
+  categories: building
+  tags: man_made=tower
+
+- name: water tower
+  categories:
+    - building
+    - municpial facility
+  tags: man_made=water_tower
+
+- name: lookout tower
+  categories: building
+  tags: man_made=lookout_tower
+
+- name: lighthouse
+  categories: building
+  tags: man_made=lighthouse
+
+- name: chimney
+  tags: man_made=chimney
+  named: false
+
+- name: mast
+  tags: man_made=mast
+  named: false
+
+- name: flagpole
+  tags: man_made=flagpole
+  named: false
+

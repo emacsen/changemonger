@@ -1,0 +1,51 @@
+---
+
+- name: cemetary
+  categories: area
+  tags: landuse=cemetary
+
+- name: commercial area
+  categories: area
+  types: way
+  tags: landuse=commercial
+
+- name: conservation area
+  categories: area
+  tags: landuse=conservation
+
+- name: construction site
+  categories: area
+  types: way
+  tags: landuse=construction
+
+- name: graveyard
+  categories: area
+  tags: landuse=grave_yard
+
+- name: industrial area
+  categories: area
+  types: way
+  tags: landuse=industrial
+
+- name: marketplace
+  categories: area
+  types: way
+  tags: landuse=marketplace
+
+- name: military
+  categories: area
+  tags: landuse=military
+
+- name: quarry
+  categories: landuse
+  tags: landuse=qiarry
+
+- name: residential area
+  categories: area
+  types: way
+  tags: landuse=residential
+
+- name: retail area
+  categories: area
+  types: way
+  tags: landuse=retail

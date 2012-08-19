@@ -1,0 +1,40 @@
+- name: baseball field
+  categories: [sports facility]
+  tags:
+    - leisure=pitch
+    - sport=baseball
+
+- name: basketball court
+  categories: [sports facility]
+  tags: [leisure=pitch, sport=basketball]
+
+- name: golf course
+  categories: sports facility
+  tags: leisure=golf_course
+
+- name: playground
+  categories: sports facility
+  tags: leisure=playground
+
+- name: recreation area
+  categories: sports facility
+  tags: leisure=recreation_ground
+
+- name: sports center
+  categories:
+    - sports facility
+  tags: leisure=sports_centre
+
+- name: sports field
+  categories: sports facility
+  tags: leisure=pitch
+
+- name: sports track
+  categories: sports facility
+  tags: leisure=track
+
+- name: stadium
+  categories:
+    - sports facility
+    - building
+  tags: leisure=stadium

@@ -1,0 +1,68 @@
+- name: Christian church
+  categories: place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+
+- name: Anglican Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denomination=anglican
+
+- name: Baptist Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denomination=baptist
+
+- name: Catholic Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=catholic
+    - denomination=anglican
+
+- name: Evangelical Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denomination=evangelical
+
+- name: Greek Orthodox Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denomination=greek_orthodox
+
+- name: Mormon Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denomination=mormon
+
+- name: Presbyterian Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denominationpresbyterian
+
+- name: Protestant Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denomination=protistant
+
+- name: Quaker Church
+  categories: christian church, place of worship
+  tags:
+    - amenity=place_of_worship
+    - religion=christianity
+    - denomination=quaker
