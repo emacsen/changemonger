@@ -14,102 +14,97 @@
 ##  You should have received a copy of the GNU Affero General Public License
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Contains functions related to Changemonger features for a mongodb backend"""
+"""Contains functions related to Changemonger features for a yaml backend"""
 
 import inflect
 from sets import Set
-from pymongo import Connection
-connection = Connection()
+import yaml
+from magic import magic_features
 
-p = inflect.engine()
-
-def dict2list(d):
-    """Function that turns a dictionary into a list of key=value strings"""
-    l = []
-    for k, v in d.items():
-        l.append(u'%s=%s' % (k, v))
-    return l
+inflection = inflect.engine()
 
 def compare_precision(a, b):
+    """Compare the precision of two features"""
     return precision(b) - precision(a)
 
 def pluralize(feature):
     """Pluralize a feature (or category)"""
-    return feature.get('plural', p.plural(feature['name']))
+    return feature.get('plural', inflection.plural(feature['name']))
 
 def precision(feature):
+    """Get the precision of a feature"""
     ### Either use the explicit precision value or the number of tags * 2
     ### (this way we know that odd numbers are automatically set, ie
     ### building=yes is 1
-    ama = feature.get('ama', 'feature')
-    if ama == 'magic':
-        return feature.get('precision', 2)
-    elif ama == 'category':
+    ama = feature.get('ama')
+    if ama == 'category':
+        return feature.get('precision', 3)
+    elif ama == 'magic':
         return feature.get('precision', 2)
     else:
-        return feature.get('precision', 10 + len(feature['tags']))
-
-def makeMagicFeatures():
-    features = []
-    def untagged(ele):
-        return (len(ele['tags']) == 0)
-    def always(ele):
-        return True
-    features.append({'name': 'untagged node',
-                     'ama': 'magic',
-                     'types': ['node'],
-                     'precision': 0,
-                     'match': untagged})
-    features.append({'name': 'untagged way',
-                     'types': ['way'],
-                     'ama': 'magic',
-                     'precision': 0,
-                     'match': untagged})
-    features.append({'name': 'untagged relation',
-                     'types': ['relation'],
-                     'ama': 'magic',
-                     'precision': 0,
-                     'match': untagged})
-    features.append({'name': 'unidentified node',
-                     'types': ['node'],
-                     'ama': 'magic',
-                     'precision': -1,
-                     'match': always})
-    features.append({'name': 'unidentified way',
-                     'types': ['way'],
-                     'ama': 'magic',
-                     'precision': -1,
-                     'match': always})
-    features.append({'name': 'unidentified relation',
-                     'types': ['relation'],
-                     'ama': 'magic',
-                     'precision': -1,
-                     'match': always})
-    features.append({'name': 'building',
-                     'ama': 'magic',
-                     'precision': 2,
-                     'match': lambda ele: ele['tags'].has_key('building')})
-    features.append({'name': 'shop',
-                     'ama': 'magic',
-                     'precision': 5,
-                     'match': lambda ele: ele['tags'].has_key('shop')})
-    features.append({'name': 'man made feature',
-                     'ama': 'magic',
-                     'precision': 3,
-                     'match': lambda ele: ele['tags'].has_key('man_made')})
-    return features
-
+        # Assume it's a plain feature
+        return feature.get('precision', len(feature['tags']) + 10)
 class FeatureDB:
     """This is the abstraction against using the features"""
-    def __init__(self, db = connection['changemonger']):
-        self._db = db
-        self._features = db.features
-        self._magic = makeMagicFeatures()
+    def __init__(self):
+        """Initialize feature database, use the argument as the filename"""
+        self._features = []
+        self._magic = magic_features()
+        self._categories = {}
+
+    def _get_or_make_category(self, category_name):
+        """Either retrieve a category or create one as necessary"""
+        category = self._categories.get(category_name)
+        if not category:
+            category = {'name': category_name, 'ama': 'category',
+                        'features': []}
+            self._categories[category_name] = category
+        return category
+
+    def _yaml_dict_to_feature(self, item):
+        """Convert yaml item to feature"""
+        feature = item
+        tags = item.get('tags', [])
+        if isinstance(tags, basestring):
+            feature['tags'] = tags = [tags]
+        category_names = item.get('categories', [])
+        if isinstance(category_names, basestring):
+            category_names = [category_names]
+        feature['categories'] = [self._get_or_make_category(name)
+                                 for name in category_names]
+        if item.has_key('precision'):
+            feature['precision'] = int(item['precision'])
+        return feature
+
+    def load_yaml_categories(self, fname):
+        """Load a yaml file full of categories into the database"""
+        with open(fname) as fd:
+            data = fd.read()
+            yamldata = yaml.safe_load(data)
+            for item in yamldata:
+                name = item.get('name')
+                if not name:
+                    continue
+                category = self._get_or_make_category(name)
+                if item.has_key('precision'):
+                    category['precision'] = int(item['precision'])
+                
+    def load_yaml_features(self, fname):
+        """Load a yaml of features file into the database"""
+        with open(fname) as fd:
+            data = fd.read()
+            yamldata = yaml.safe_load(data)
+            for item in yamldata:
+                feature = self._yaml_dict_to_feature(item)
+                self._features.append(feature)
 
     def matchFeature(self, feature, ele):
+        """Check if element matches feature"""
         if feature.has_key('types'):
             if not ele['type'] in feature['types']:
                 return False
+        if not feature.has_key('tags'):
+            print "WAIT!!!!!!!!!!! " + feature['name'] + " has no tags\n\n"
         for tag in feature['tags']:
             if not tag in ele['_tags']:
                 return False
@@ -117,6 +112,7 @@ class FeatureDB:
         return False
 
     def matchMagic(self, feature, ele):
+        """Check if element matches magic feature"""
         # magic features act like normal features, but they have a
         # match function stored as an anonymous function in their
         # 'match' key
@@ -127,49 +123,11 @@ class FeatureDB:
             return feature
 
     def matchCategory(self, category, ele):
-        for feature_id in category['features']:
-            feature = self._features({'_id': feature_id})
+        """Check if element matches category"""
+        for feature in category['features']:
             if self.matchFeature(feature, ele):
                 return category
 
-    def addCategory(self, name):
-        category = self._features.find_one({'name': name,
-                                            'ama': 'category'})
-        if category:
-            return category
-        else:
-            return self._features.insert({'name': name,
-                                          'ama': 'category',
-                                          'precision': 0,
-                                          'features': []})
-
-    def registerFeaturetoCategory(self, category, feature):
-        if category.has_key('features'):
-            if feature['_id'] in category['features']:
-                return
-            else:
-                category['features'].append(feature['_id'])
-        else:
-            category['features'] = [feature['_id']]
-        self._features.save(category)
-
-    def modifyCategory(self, category):
-        return self._features.save(category)
-
-    def addFeature(self, name, tags, category_names = []):
-        categories = [self.addCategory(cat_name) for cat_name in category_names]
-        feature = {'name': name,
-                   'tags': tags,
-                   'categories': categories}
-        feature_id = self._features.insert(feature)
-        for cat_id in categories:
-            category = self._features.find_one({'_id': cat_id})
-            if category.has_key('features'):
-                category['features'].append(feature_id)
-            else:
-                category['features'] = [feature_id]
-            self._features.save(category)
-    
     def matchBestSolo(self, ele):
         """Returns the best matching feature for an element"""
         # This function is not optimized in any way. Ideally it should
@@ -177,36 +135,37 @@ class FeatureDB:
         # and dirty and it works.
         match = None
         match_val = -10
-        for feature in self._features.find():
+        for feature in self._features:
             if (precision(feature) > match_val
                 and self.matchFeature(feature, ele)):
                 match = feature
                 match_val = precision(feature)
-        for feature in self._magic:
-            if (precision(feature) > match_val
-                and self.matchMagic(feature, ele)):
-                match = feature
-                match_val = precision(feature)
-        return match
+        if not match:
+            # The object doesn't match the normal features, we'll have
+            # to test it against the base "magic" features.
+            for feature in self._magic:
+                if (precision(feature) > match_val
+                     and self.matchMagic(feature, ele)):
+                    # We rely on the fact that magic features are
+                    # always listed in order of precision
+                    return match
 
     def matchAllSolo(self, ele):
         """Return all the matching features and categories for an
         element, sorted by precision
         """
-        category_ids = Set()
-        features = [feature for feature in self._features.find()
+        features = [feature for feature in self._features
                     if self.matchFeature(feature, ele)]
+        cat_names = Set()
         for feature in features:
-            category_ids.add(feature['categories'])
-        # We don't need to check the categories manually, this is
-        # faster
-        categories = [self._features.find_one({'_id': cat_id})
-                      for cat_id in category_ids]
+            for category in feature['categories']:
+                cat_names.add(category['name'])
+        categories = [self._categories[name] for name in cat_names]
         magic = [mag for mag in self._magic if self.matchMagic(mag, ele)]
         features.extend(categories)
         features.extend(magic)
         return(sorted(features, cmp=compare_precision))
 
     def matchEach(self, coll):
+        """Returns all the matches for all the elements in the collection"""
         return [self.matchAllSolo(ele) for ele in coll]
-
