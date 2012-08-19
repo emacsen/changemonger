@@ -20,7 +20,7 @@ app.debug = True
 from helpers import get_element_or_404, get_changeset_or_404, \
     sentence_from_changeset
 from elements import common_name, display_name
-from yaml_features import FeatureDB
+from features import FeatureDB
 from werkzeug import ImmutableDict
 from features import pluralize
 import os
