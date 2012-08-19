@@ -1,8 +1,28 @@
+##  Changemonger: An OpenStreetMap change analyzer
+##  Copyright (C) 2012 Serge Wroclawki
+##
+##  This program is free software: you can redistribute it and/or modify
+##  it under the terms of the GNU Affero General Public License as
+##  published by the Free Software Foundation, either version 3 of the
+##  License, or (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU Affero General Public License for more details.
+##
+##  You should have received a copy of the GNU Affero General Public License
+##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """Functions related to working with elements and collections of elements"""
 import inflect
-
+import osmapi
+import xml.etree.ElementTree as et
 p = inflect.engine()
 
+def is_polygon(ele):
+    if ele['type'] == 'way' and ele['nd'][0] == ele['nd'][-1]:
+        return True
 
 def common_name(ele):
     """Take an element and return its common name"""
@@ -22,14 +42,14 @@ def display_name(ele, feature):
     name
 
     """
-    if not ele['tags'] or not feature.use_name:
-        return u"%s" % (p.a(feature.name))
+    if not ele.get('tags') or not feature.get('named'):
+        return u"%s" % (p.a(feature['name']))
     elif ( 'name' in ele['tags'].keys() or
          'brand' in ele['tags'].keys() or
          'operator' in ele['tags'].keys()):
         return common_name(ele)
     else:
-        return u"an unnamed " + feature.name
+        return u"an unnamed " + feature['name']
 
 def get_user(ele):
     """Takes an element and returns a displable username"""
