@@ -1,3 +1,10 @@
+def dict2list(d):
+    """Function that turns a dictionary into a list of key=value strings"""
+    l = []
+    for k, v in d.items():
+        l.append(u'%s=%s' % (k, v))
+    return l
+
 def parseTags (tags):
     d = {}
     for tag in tags:
@@ -14,6 +21,7 @@ def parseNode (node):
     d = {'type': 'node'}
     d.update(parseAttribs(node.attrib))
     d['tags'] = parseTags(node.findall('tag'))
+    d['_tags'] = dict2list(d['tags'])
     return d
 
 def parseWay (way):
@@ -22,6 +30,7 @@ def parseWay (way):
     for nd in way.findall('nd'):
         d['nd'].append(nd.attrib['ref'])
     d['tags'] = parseTags(way.findall('tag'))
+    d['_tags'] = dict2list(d['tags'])
     return d
 
 def parseRelation (rel):
@@ -32,6 +41,7 @@ def parseRelation (rel):
                              'ref': m.attrib['ref'],
                              'role': m.attrib['role']})
     d['tags'] = parseTags(rel.findall('tag'))
+    d['_tags'] = dict2list(d['tags'])
     return d
 
 def parseChange (osmchange):
