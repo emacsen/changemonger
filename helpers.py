@@ -10,7 +10,8 @@ p = inflect.engine()
 
 from elements import display_name, get_user, add_local_way_references, \
     add_local_relation_references, add_remote_ways, add_remote_relations, \
-    sort_elements, sort_by_num_features, feature_grouper, sort_grouped
+    sort_elements, sort_by_num_features, feature_grouper, sort_grouped, \
+    remove_unnecessary_items
 
 def get_element_or_404(o_type, oid):
     api = { 'node': osmapi.getNode,
