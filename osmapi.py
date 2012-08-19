@@ -1,33 +1,86 @@
-import urllib2
+##  Changemonger: An OpenStreetMap change analyzer
+##  Copyright (C) 2012 Serge Wroclawki
+##
+##  This program is free software: you can redistribute it and/or modify
+##  it under the terms of the GNU Affero General Public License as
+##  published by the Free Software Foundation, either version 3 of the
+##  License, or (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU Affero General Public License for more details.
+##
+##  You should have received a copy of the GNU Affero General Public License
+##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Provides a simple abstraction against the OSM API"""
+
+import requests
+import requests_cache
+requests_cache.configure('osm_cache')
 
 server = 'api.openstreetmap.org'
 
-def getNode(id):
-    url = 'http://' + server + '/api/0.6/node/' + str(id)
-    return urllib2.urlopen(url).read()
+def getNode(id, version = None):
+    id = str(id)
+    version = str(version)
+    if version:
+        url = "http://%s/api/0.6/node/%s/%s" % (server, id, version)
+    else:
+        url = "http://%s/api/0.6/node/%s" % (server, id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
-def getWay(id):
-    url = 'http://' + server + '/api/0.6/way/' + str(id)
-    return urllib2.urlopen(url).read()
+def getWay(id, version = None):
+    id = str(id)
+    version = str(version)
+    if version:
+        url = "http://%s/api/0.6/way/%s/%s" % (server, id, version)
+    else:
+        url = "http://%s/api/0.6/way/%s" % (server, id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
-def getRelation(id):
-    url = 'http://' + server + '/api/0.6/relation/' + str(id)
-    return urllib2.urlopen(url).read()
+def getRelation(id, version = None):
+    id = str(id)
+    version = str(version)
+    if version:
+        url = "http://%s/api/0.6/relation/%s/%s" % (server, id, version)
+    else:
+        url = "http://%s/api/0.6/relation/%s" % (server, id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
 def getChangeset(id):
-    url = 'http://' + server + '/api/0.6/changeset/' + str(id)
-    return urllib2.urlopen(url).read()
+    id = str(id)
+    url = "http://%s/api/0.6/changeset/%s" % (server, id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
 def getChange(id):
-    url = 'http://' + server + '/api/0.6/changeset/' + str(id) + '/download'
-    return urllib2.urlopen(url).read()
+    id = str(id)
+    url = "http://%s/api/0.6/changeset/%s/download" % (server, id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
-def getWaysforNode(nodeid):
-    url = 'http://' + server + '/api/0.6/node/' + str(nodeid) + '/ways'
-    print url
-    return urllib2.urlopen(url).read()
+def getWaysforNode(id):
+    id = str(id)
+    url = "http://%s/api/0.6/node/%s/ways" % (server, id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
-def getRelationsforElement(otype, oid):
-    url = 'http://' + server + '/api/0.6/' + otype + '/' + str(oid) + '/relations'
-    return urllib2.urlopen(url).read()
+def getRelationsforElement(type, id):
+    type = str(type)
+    id = str(id)
+    url = "http://%s/api/0.6/%s/%s/relations" % (server, type, id)
+    r = requests.get(url)
+    r.raise_for_status()
+    return r.text
 
