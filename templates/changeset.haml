@@ -1,0 +1,10 @@
+-extends "base.haml"
+-set title = "Changeset"
+-block content:
+  %h1 << Changeset
+  %p
+    Enter the ID of the changeset you would like to query
+  %form action="/changeset" method="get"
+    %label << Way ID
+    %input type="text" name="id"
+    %input type="submit" style="visibility: hidden;"
