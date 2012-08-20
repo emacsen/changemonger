@@ -41,8 +41,7 @@ filename/directory they reside in.
 
 While this program is covered under the AGPLv3, the data it returns
 (though modified through Changemonger) is subject to the terms and
-licenses of the data source, which is the ODbL 1.0 as of time of
-writing.
+licenses of the data source.
 
 In addition, users of this program should be aware that mis-use of
 this program could easily run you afoul of OpenStreetMap Terms of
