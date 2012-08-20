@@ -24,9 +24,8 @@ server = 'api.openstreetmap.org'
 
 def getNode(id, version = None):
     id = str(id)
-    version = str(version)
     if version:
-        url = "http://%s/api/0.6/node/%s/%s" % (server, id, version)
+        url = "http://%s/api/0.6/node/%s/%s" % (server, id, str(version))
     else:
         url = "http://%s/api/0.6/node/%s" % (server, id)
     r = requests.get(url)
@@ -35,22 +34,22 @@ def getNode(id, version = None):
 
 def getWay(id, version = None):
     id = str(id)
-    version = str(version)
     if version:
-        url = "http://%s/api/0.6/way/%s/%s" % (server, id, version)
+        url = "http://%s/api/0.6/way/%s/%s" % (server, id, str(version))
     else:
         url = "http://%s/api/0.6/way/%s" % (server, id)
+    print url
     r = requests.get(url)
     r.raise_for_status()
     return r.text
 
 def getRelation(id, version = None):
     id = str(id)
-    version = str(version)
     if version:
-        url = "http://%s/api/0.6/relation/%s/%s" % (server, id, version)
+        url = "http://%s/api/0.6/relation/%s/%s" % (server, id, str(version))
     else:
         url = "http://%s/api/0.6/relation/%s" % (server, id)
+    print url
     r = requests.get(url)
     r.raise_for_status()
     return r.text
@@ -58,6 +57,7 @@ def getRelation(id, version = None):
 def getChangeset(id):
     id = str(id)
     url = "http://%s/api/0.6/changeset/%s" % (server, id)
+    print url
     r = requests.get(url)
     r.raise_for_status()
     return r.text

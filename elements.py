@@ -18,11 +18,8 @@
 import inflect
 import osmapi
 import xml.etree.ElementTree as et
+import parser
 p = inflect.engine()
-
-def is_polygon(ele):
-    if ele['type'] == 'way' and ele['nd'][0] == ele['nd'][-1]:
-        return True
 
 def common_name(ele):
     """Take an element and return its common name"""
@@ -56,15 +53,13 @@ def get_user(ele):
     if ele.has_key('user'):
         return ele['user']
     else:
-        return 'User %s' % (str(changeset['uid']))
-
-def get_user(changeset):
-    if changeset.has_key('user'):
-        return changeset['user']
-    else:
-        return 'User %s' % (str(changeset['uid']))
+        return 'User %s' % (str(ele['uid']))
 
 def sort_by_num_features(coll):
+    """Takes a collection of (features, [elements] and returns them in
+    order of quantity of elements
+
+    """
     def sort_num_features(a, b):
         return len(b[1]) - len(a[1])
     return sorted(coll, cmp=sort_num_features)
@@ -126,45 +121,6 @@ def sort_elements(coll):
     l.extend(sorted(relations, cmp=sortfn))
     return l
 
-def unique_elements(coll):
-    """Takes a sorted collection of elements. Returns those elements
-    uniqued by version. Also removes dupes.
-    """
-    ### UNUSED BECAUSE BROKEN!
-    if not coll:
-        return
-    i = 0
-    while i <= (len(coll) - 1):
-        ele = coll[i]
-        next_ele = coll[i + 1]
-        if ( ele['type'] == next_ele['type'] and
-             ele['id'] == next_ele['id'] and
-             ele['version'] <= next_ele['version']):
-            coll.pop(i)
-        else:
-            i += 1
-        
-def unique_elements2(coll):
-    """Takes a sorted collection of elements. Returns those elements
-    uniqued by version. Also removes dupes.
-    """
-    prev = None
-    l = []
-    for idx, ele in enumerate(coll):
-        try:
-            if not prev:
-                continue
-            if ( ele['type'] == prev['type'] and
-                 ele['id'] == prev['id'] and
-                 prev['version'] <= ele['version']):
-                pass
-            else:
-                l.append(ele)
-                prev = ele
-        except IndexError:
-            # This is fine, we'll exit out the next go
-            pass
-    return l
 
 def remove_unnecessary_items(coll):
     """Takes a collection of elements and removes those which are
@@ -179,34 +135,11 @@ def remove_unnecessary_items(coll):
             l.append(ele)
     return l
 
-    """Takes a collection of elements and removes tagless objects
-    belonging to another object
-    """
-    # This is not the most network efficient mechanism to get this,
-    # but it'll do for now
-    coll_idx = {}
-    for ele in coll:
-        if ele['tags']:
-            continue
-        # This element is tagless
-        if ele['type'] == 'node':
-            raw_ways = osmapi.getWaysforNode(ele['id'])
-            root = xml_find('osm')
-            ways = [way for way in parseWay(root.findall('way'))]
-        relations = [rel for rel in
-                     parseRelation(root.findall('relation'))]
-        if not ways or not relations:
-                    # This is significant
-                    l.append(ele)
-        for way in ways:
-            # We need to be sure that this way isn't already accounted
-            # for (because we're adding them
-            for relation in relations:
-                l.append(relation)
-                
-
 def add_local_way_references(coll):
-    """Takes a collection of elements and adds way callbacks to the nodes"""
+    """Takes a collection of elements and adds way callbacks to the
+    nodes
+
+    """
     # This isn't the most efficient way to do this
     nodes = [ele for ele in coll if ele['type'] == 'node']
     ways = [ele for ele in coll if ele['type'] == 'way']
@@ -219,13 +152,17 @@ def add_local_way_references(coll):
                 node['_ways'] = [way['id']]
 
 def add_local_relation_references(coll):
+    """Takes a collection of elements and makes connections between
+    the elenments for relations as necessary
+
+    """
     # Same here about inefficiency
     relations = [ele for ele in coll if ele['type'] == 'relation']
     for rel in relations:
         members = [ (i['type'], i['ref']) for i in rel['members']]
         for member in members:
-            type = ele['type']
-            id = ele['id']
+            type = member['type']
+            id = member['id']
             # We'll use a list comprehension here even though it
             # should only return a single element
             for ele in [e for e in coll if (e['type'] == type
@@ -239,7 +176,6 @@ def add_remote_ways(coll):
     """Takes a collection of elements and adds way references for
     nodes if they don't have tags, or existing ways
     """
-    newways = []
     nodes = [ele for ele in coll if (ele['type'] == 'node'
                                      and not ele['tags']
                                      and not ele.has_key('_ways'))]
@@ -255,43 +191,45 @@ def add_remote_ways(coll):
         for way in ways:
             coll.append(way)
             # This is a lot of looping we could avoid if we had an index...
-            [addWayCallbackToNode(n, way['id']) for n in nodes if n['id'] in way['nd']]
+            for nd in nodes:
+                if not nd['id'] in way['nd']:
+                    continue
+                if nd.has_key('_ways'):
+                    nd['_ways'].append(way)
+                else:
+                    nd['_ways'] = [way]
 
 def add_remote_relations(coll):
+    """Takes an element of collections and fetches relations as necessary"""
     elements = [ele for ele in coll if (not ele['tags']
                                         and not ele.has_key('_relations'))]
     nodes = [ele for ele in coll if ele['type'] == 'node']
     ways = [ele for ele in coll if ele['type'] == 'way']
     relations = [ele for ele in coll if ele['type'] == 'relation']
     for ele in elements:
+        # We keep changing the elmements in place, so we must keep
+        # checking them
         if ele['tags'] or ele.has_key('_ways') or ele.has_key('_relations'):
             continue
         data = osmapi.getRelationsforElement(ele['type'], ele['id'])
         xml = et.XML(data)
-        root = xml.find('osm')
         rels = [parser.parseRelation(rel) for rel in xml.findall('relation')]
         for rel in rels:
             coll.append(rel)
             for member in rel['members']:
-                mid = member['ref']
-                mtype = member['type']
-                mobj = None
-                if mtype == 'node':
-                    mobj = [m for m in nodes if m['id'] == mid][0]
-                elif mtype == 'way':
-                    mobj =  [m for m in nodes if m['id'] == mid][0]
+                id = member['ref']
+                type = member['type']
+                obj = None
+                if type == 'node':
+                    obj = [m for m in nodes if m['id'] == id][0]
+                elif type == 'way':
+                    obj =  [m for m in ways if m['id'] == id][0]
                 else:
-                    mobj = [m for m in relations if m['id'] == mid][0]
-                addRelationCallbackToElement(mobj)
+                    obj = [m for m in relations if m['id'] == id][0]
+                if obj:
+                    # Now add the relation callback
+                    if obj.has_key('_relations'):
+                        obj['_relations'].append(rel)
+                    else:
+                        obj['_relations'] = [rel]
 
-def allRelationCallbackToElement(ele, relid):
-    if ele.has_key('_relation'):
-        ele['_relations'].append(relid)
-    else:
-        ele['_ways'] = [relid]
-
-def addWayCallbackToNode(node, wayid):
-    if node.has_key('_ways'):
-        node['_ways'].append(wayid)
-    else:
-        node['_ways'] = [wayid]
