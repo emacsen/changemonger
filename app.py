@@ -17,6 +17,7 @@
 from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 app.debug = True
+from features import precision
 import helpers
 from elements import common_name, display_name
 from werkzeug import ImmutableDict
@@ -29,6 +30,7 @@ class FlaskWithHamlish(Flask):
  
 app = FlaskWithHamlish(__name__)
 app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
+app.jinja_env.globals.update(precision=precision)
 
 @app.route('/')
 def index():
