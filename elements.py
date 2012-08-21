@@ -19,6 +19,7 @@ import inflect
 import osmapi
 import xml.etree.ElementTree as et
 import parser
+import features
 p = inflect.engine()
 
 def common_name(ele):
@@ -92,7 +93,7 @@ def grouped_to_english(coll):
     for elements, feature in coll:
         if len(elements) > 1:
             l.append("%s %s" % (p.number_to_words(len(elements)),
-                                feature.plural))
+                                features.pluralize(feature)))
         else:            
             l.append(display_name(elements[0], feature))
     return p.join(l)
