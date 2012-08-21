@@ -36,6 +36,10 @@ app.jinja_env.globals.update(precision=precision)
 def index():
     return render_template('index.haml')
 
+@app.route('/api.html')
+def display_api_docs():
+    return render_template('api.haml')
+
 @app.route('/node')
 def display_node():
     if request.args.has_key('id'):
