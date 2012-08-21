@@ -125,7 +125,7 @@ def api_relation(id):
 def show_changeset(id):
     cset = helpers.get_changeset_or_404(id)
     sentence = changemonger.changeset_sentence(cset)
-    return sentence
+    return jsonify(sentence=sentence)
 
 if __name__ == '__main__':
     app.debug = True
