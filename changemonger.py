@@ -28,7 +28,7 @@ db = FeatureDB()
 for subdir, dirs, files in os.walk('features/'):
     for fname in files:
         name, ext = os.path.splitext(fname)
-        if ext == '.yaml':
+        if ext == '.yaml' and name[0] != '.':
             db.load_yaml_features('features/' + fname)
 
 def features(element):
