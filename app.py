@@ -121,7 +121,7 @@ def api_relation(id):
     return jsonify(cn=common_name(ele),
                    features=features_names)
 
-@app.route('/api/changeset/<changesetid>')
+@app.route('/api/changeset/<id>')
 def show_changeset(id):
     cset = helpers.get_changeset_or_404(id)
     sentence = changemonger.changeset_sentence(cset)
