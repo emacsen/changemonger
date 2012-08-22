@@ -27,7 +27,7 @@ application under your web server of choice.
 
 ### License:
 
-This program is covered under the Allegro GNU General Public License
+This program is covered under the Affero GNU General Public License
 version 3 or above as described in the `LICENSE.txt file enclosed with
 the source code
 
