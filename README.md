@@ -1,6 +1,9 @@
-# Changemonger
+Changemonger
+============
 
-### OSM Change monitoring tools
+
+OSM Change monitoring tools
+---------------------------
 
 Changemonger is a tool to allow humans to monitor and understand
 changes that occur in OpenStreetMap (or API compatible) datasets.
@@ -8,36 +11,42 @@ changes that occur in OpenStreetMap (or API compatible) datasets.
 Changemonger provides several services to this end, including a web
 frontend and a simple, RESTful API to deliver data to users.
 
-### Installation:
+
+Installation
+------------
 
 For most users of this service, installation is unnecessary and they
 should use RESTful API calls to make their requests.
 
 For those of you wishing to actually install and run this program 
 locally, this program is a standard Python app. It is highly recommended 
-that you use virtualenv to manage the installation, create a virtual environment and and from there, just 
-run
+that you use `virtualenv` to manage the installation, create a virtual
+environment and, from there, just run
 
-`pip install -r requirements.txt
+    pip install -r requirements.txt
 
 to install the dependencies.
 
-To run the web application, simply run app.py from Python, or as a wsgi 
+To run the web application, simply run `app.py` with Python, or as a WSGI
 application under your web server of choice.
 
-### License:
+
+License
+-------
 
 This program is covered under the Affero GNU General Public License
-version 3 or above as described in the `LICENSE.txt file enclosed with
+version 3 or above as described in the `LICENSE` file enclosed with
 the source code
 
-The exception to this are the configuration files under the `features
-directory and the 'magic.py file, which contains additional
+The exception to this are the configuration files under the `features`
+directory and the `magic.py` file, which contains additional
 instructions for matching configuration. Modifications beyond simple
 configuration shall be covered under the AGPL no matter what
 filename/directory they reside in.
 
-### OSM Data and Terms of Use:
+
+OSM Data and Terms of Use
+-------------------------
 
 While this program is covered under the AGPLv3, the data it returns
 (though modified through Changemonger) is subject to the terms and
