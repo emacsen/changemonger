@@ -37,6 +37,12 @@ def get_changeset_or_404(id):
     # and from the osmchange
     return changemonger.changeset(id)
 
+def get_feature_or_404(id):
+    try:
+        return changemonger.db.get(id)
+    except KeyError:
+        abort(404)
+
 def grouped_to_english(coll):
     """Take a grouped collection (from feature_grouper) and return it
     as a human readable string

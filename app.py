@@ -22,7 +22,8 @@ import helpers
 from elements import common_name, display_name
 from werkzeug import ImmutableDict
 import changemonger
-
+from inspect import getsource
+from features import pluralize
 class FlaskWithHamlish(Flask):
     jinja_options = ImmutableDict(
         extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_',
@@ -31,6 +32,8 @@ class FlaskWithHamlish(Flask):
 app = FlaskWithHamlish(__name__)
 app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
 app.jinja_env.globals.update(precision=precision)
+app.jinja_env.globals.update(getsource=getsource)
+app.jinja_env.globals.update(pluralize=pluralize)
 
 @app.route('/')
 def index():
@@ -94,7 +97,17 @@ def display_changeset():
 @app.route('/features')
 def show_features():
     return render_template('features.haml',
-                           features = changemonger.db._features)
+                           features = changemonger.db._features,
+                           categories = changemonger.db._categories.values(),
+                           magic = changemonger.db._magic)
+
+@app.route('/feature/<id>')
+def show_feature(id):
+    id = unicode(id)
+    print "got here"
+    ##feature = helpers.get_feature_or_404(id)
+    feature =  changemonger.db.get(id)
+    return render_template('feature.haml', feature=feature)
 
 @app.route('/dbstats')
 def show_stats():

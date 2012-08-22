@@ -6,7 +6,7 @@
 list of magic features
 
 """
-def magic_features():
+def magic():
     """Create the magic feature set"""
     features = []
     # Pythonistias will complain about using lambda this way- oh well.

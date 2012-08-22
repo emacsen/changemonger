@@ -19,7 +19,8 @@
 import inflect
 from sets import Set
 import yaml
-from magic import magic_features
+import os.path
+import imp
 
 inflection = inflect.engine()
 
@@ -44,13 +45,59 @@ def precision(feature):
     else:
         # Assume it's a plain feature
         return feature.get('precision', len(feature['tags']) + 10)
+
 class FeatureDB:
     """This is the abstraction against using the features"""
-    def __init__(self):
-        """Initialize feature database, use the argument as the filename"""
+    def __init__(self, directory = 'features'):
+        """Initialize feature database, use the argument as the directory"""
         self._features = []
-        self._magic = magic_features()
+        self._magic = []
+        # We almost never iterate through categories, but we do call
+        # them by name a lot
         self._categories = {}
+        # This is only used for external apps (like the web app) to
+        # look for features by ID
+        self._index = {}
+
+        # Now load the actual features
+        if not os.path.isabs(directory):
+            directory = os.path.abspath(directory)
+        # We're going to just assume the directory exists for now
+        
+        if os.path.exists(os.path.join(directory, 'features.yaml')):
+            db._load_yaml_simple_features(
+                os.path.join(directory, 'simple.yaml'))
+        elif os.path.isdir(os.path.join(directory, 'simple')):
+            self._load_simple_directory(os.path.join(directory, 'simple'))
+        
+        if os.path.exists(os.path.join(directory, 'categories.yaml')):
+                self._load_yaml_categories(os.path.join(directory,
+                                                        'categories.yaml'))
+
+        if os.path.exists(os.path.join(directory, 'magic.py')):
+            self._load_magic_file(directory)
+
+    def _load_magic_file(self, directory):
+        fp, pathname, description = imp.find_module('magic', [directory])
+        try:
+            module = imp.load_module('magic', fp, pathname, description)
+            features = module.magic()
+            for feature in features:
+                feature['id'] = feature.get('id', id(feature))
+                feature['id'] = unicode(feature['id'])
+                self._magic.append(feature)
+                self._index[feature['id']] = feature
+        finally:
+            if fp:
+                fp.close()
+
+    def _load_simple_directory(self, dirname):
+        for subdir, dirs, files in os.walk(dirname):
+            for fname in files:
+                name, ext = os.path.splitext(fname)
+                if ext == '.yaml' and name[0] != '.':
+                    self._load_yaml_simple_features(
+                        os.path.join(dirname, fname))
 
     def _get_or_make_category(self, category_name):
         """Either retrieve a category or create one as necessary"""
@@ -58,25 +105,32 @@ class FeatureDB:
         if not category:
             category = {'name': category_name, 'ama': 'category',
                         'features': []}
+            category['id'] = unicode(id(category))
             self._categories[category_name] = category
+            self._index[category['id']] = category
         return category
 
     def _yaml_dict_to_feature(self, item):
         """Convert yaml item to feature"""
         feature = item
+        feature['ama'] = 'simple'
         tags = item.get('tags', [])
         if isinstance(tags, basestring):
             feature['tags'] = tags = [tags]
         category_names = item.get('categories', [])
         if isinstance(category_names, basestring):
             category_names = [category_names]
-        feature['categories'] = [self._get_or_make_category(name)
-                                 for name in category_names]
+        categories = []
+        for cat_name in category_names:
+            category = self._get_or_make_category(cat_name)
+            category['features'].append(feature)
+            categories.append(category)
+        feature['categories'] = categories
         if item.has_key('precision'):
             feature['precision'] = int(item['precision'])
         return feature
 
-    def load_yaml_categories(self, fname):
+    def _load_yaml_categories(self, fname):
         """Load a yaml file full of categories into the database"""
         with open(fname) as fd:
             data = fd.read()
@@ -89,22 +143,23 @@ class FeatureDB:
                 if item.has_key('precision'):
                     category['precision'] = int(item['precision'])
                 
-    def load_yaml_features(self, fname):
+    def _load_yaml_simple_features(self, fname):
         """Load a yaml of features file into the database"""
         with open(fname) as fd:
             data = fd.read()
             yamldata = yaml.safe_load(data)
             for item in yamldata:
                 feature = self._yaml_dict_to_feature(item)
+                feature['id'] = feature.get('id', id(feature))
+                feature['id'] = unicode(feature['id'])
                 self._features.append(feature)
+                self._index[feature['id']] = feature
 
     def matchFeature(self, feature, ele):
         """Check if element matches feature"""
         if feature.has_key('types'):
             if not ele['type'] in feature['types']:
                 return False
-        if not feature.has_key('tags'):
-            print "WAIT!!!!!!!!!!! " + feature['name'] + " has no tags\n\n"
         for tag in feature['tags']:
             if not tag in ele['_tags']:
                 return False
@@ -169,3 +224,6 @@ class FeatureDB:
     def matchEach(self, coll):
         """Returns all the matches for all the elements in the collection"""
         return [self.matchAllSolo(ele) for ele in coll]
+
+    def get(self, id):
+        return self._index[id]

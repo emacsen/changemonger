@@ -1,0 +1,47 @@
+-extends "base.haml"
+-set title = "Feature details"
+-block content:
+  %h1 << Feature: {{feature['name']}}
+  %p
+    Name: {{feature['name']}}
+    %br
+    -if feature.has_key('plural'):
+      Plural: {{feature['plural']}}
+      -else:
+        Plural: {{pluralize(feature)}} (derived)
+
+    %br
+    -if feature.has_key('precision'):
+      Precision: {{feature['precision']}}
+    -else:
+      Precision: {{precision(feature)}} (derived)
+    %br
+    
+    -if feature.has_key('ama'):
+      -if feature['ama'] == 'category':
+        Type: Category
+        %br
+        Features in Category:
+        %ul
+        -for f in feature['features']:
+          %li
+            %a href="{{f['id']}}" << {{f['name']}}
+        -elif feature['ama'] == 'magic':
+          Type: Magic
+          %br
+          Function: {{getsource(feature['match'])}}
+        -elif feature['ama'] == 'simple':
+          Type: Simple Feature
+          %br
+          Tags:
+          %ul
+            -for t in feature['tags']:
+              %li << {{t}}
+          %br
+          Categories:
+          %ul
+            -for cat in feature['categories']:
+              %li
+                %a href="{{cat['id']}}" << {{cat['name']}}
+        -else:
+          UNKNOWN FEATURE TYPE
