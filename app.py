@@ -51,7 +51,7 @@ def display_node():
         features = changemonger.features(ele)
         return render_template('node_details.haml',
                                name = display_name(ele, features[0]),
-                               node = ele,
+                               element = ele,
                                features = features)
     else:
         return render_template('node.haml', title="Bad Node")
@@ -64,7 +64,7 @@ def display_way():
         features = changemonger.features(ele)
         return render_template('way_details.haml',
                                name = display_name(ele, features[0]),
-                               node = ele,
+                               element = ele,
                                features = features)
     else:
         return render_template('way.haml', title="Bad Way")
@@ -77,7 +77,7 @@ def display_relation():
         features = changemonger.features(ele)
         return render_template('relation_details.haml',
                                name = display_name(ele, features[0]),
-                               node = ele,
+                               element = ele,
                                features = features)
     else:
         return render_template('relation.haml', title="Bad Way")
@@ -104,7 +104,6 @@ def show_features():
 @app.route('/feature/<id>')
 def show_feature(id):
     id = unicode(id)
-    print "got here"
     ##feature = helpers.get_feature_or_404(id)
     feature =  changemonger.db.get(id)
     return render_template('feature.haml', feature=feature)
