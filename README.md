@@ -39,7 +39,7 @@ version 3 or above as described in the `LICENSE` file enclosed with
 the source code
 
 The exception to this are the configuration files under the `features`
-directory and the `magic.py` file, which contains additional
+directory, including the `magic.py` file, which contains additional
 instructions for matching configuration. Modifications beyond simple
 configuration shall be covered under the AGPL no matter what
 filename/directory they reside in.
