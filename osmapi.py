@@ -18,6 +18,8 @@
 
 import requests
 import requests_cache
+
+rs = requests.session(headers={'user-agent': 'changemonger/0.0.1'})
 requests_cache.configure('osm_cache')
 
 server = 'api.openstreetmap.org'
@@ -28,7 +30,7 @@ def getNode(id, version = None):
         url = "http://%s/api/0.6/node/%s/%s" % (server, id, str(version))
     else:
         url = "http://%s/api/0.6/node/%s" % (server, id)
-    r = requests.get(url)
+    r = rs.get(url)
     r.raise_for_status()
     return r.text
 
@@ -39,7 +41,7 @@ def getWay(id, version = None):
     else:
         url = "http://%s/api/0.6/way/%s" % (server, id)
     print url
-    r = requests.get(url)
+    r = rs.get(url)
     r.raise_for_status()
     return r.text
 
@@ -50,7 +52,7 @@ def getRelation(id, version = None):
     else:
         url = "http://%s/api/0.6/relation/%s" % (server, id)
     print url
-    r = requests.get(url)
+    r = rs.get(url)
     r.raise_for_status()
     return r.text
 
@@ -58,21 +60,21 @@ def getChangeset(id):
     id = str(id)
     url = "http://%s/api/0.6/changeset/%s" % (server, id)
     print url
-    r = requests.get(url)
+    r = rs.get(url)
     r.raise_for_status()
     return r.text
 
 def getChange(id):
     id = str(id)
     url = "http://%s/api/0.6/changeset/%s/download" % (server, id)
-    r = requests.get(url)
+    r = rs.get(url)
     r.raise_for_status()
     return r.text
 
 def getWaysforNode(id):
     id = str(id)
     url = "http://%s/api/0.6/node/%s/ways" % (server, id)
-    r = requests.get(url)
+    r = rs.get(url)
     r.raise_for_status()
     return r.text
 
@@ -80,7 +82,7 @@ def getRelationsforElement(type, id):
     type = str(type)
     id = str(id)
     url = "http://%s/api/0.6/%s/%s/relations" % (server, type, id)
-    r = requests.get(url)
+    r = rs.get(url)
     r.raise_for_status()
     return r.text
 
