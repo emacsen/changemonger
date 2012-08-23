@@ -50,7 +50,7 @@ class FeatureDB:
     """This is the abstraction against using the features"""
     def __init__(self, directory = 'features'):
         """Initialize feature database, use the argument as the directory"""
-        self._features = []
+        self._simple = []
         self._magic = []
         # We almost never iterate through categories, but we do call
         # them by name a lot
@@ -152,7 +152,7 @@ class FeatureDB:
                 feature = self._yaml_dict_to_feature(item)
                 feature['id'] = feature.get('id', id(feature))
                 feature['id'] = unicode(feature['id'])
-                self._features.append(feature)
+                self._simple.append(feature)
                 self._index[feature['id']] = feature
 
     def matchFeature(self, feature, ele):
@@ -190,7 +190,7 @@ class FeatureDB:
         # and dirty and it works.
         match = None
         match_val = -10
-        for feature in self._features:
+        for feature in self._simple:
             if (precision(feature) > match_val
                 and self.matchFeature(feature, ele)):
                 match = feature
@@ -209,7 +209,7 @@ class FeatureDB:
         """Return all the matching features and categories for an
         element, sorted by precision
         """
-        features = [feature for feature in self._features
+        features = [feature for feature in self._simple
                     if self.matchFeature(feature, ele)]
         cat_names = Set()
         for feature in features:
@@ -227,3 +227,20 @@ class FeatureDB:
 
     def get(self, id):
         return self._index[id]
+
+    @property
+    def simple(self):
+        return self._simple
+    
+    @property
+    def categories(self):
+        return self._categories.values()
+    
+    @property
+    def magic(self):
+        return self._magic
+
+    @property
+    def features(self):
+        return self._simple + self._categories.values() + self._magic
+

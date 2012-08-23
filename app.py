@@ -97,9 +97,9 @@ def display_changeset():
 @app.route('/features')
 def show_features():
     return render_template('features.haml',
-                           features = changemonger.db._features,
-                           categories = changemonger.db._categories.values(),
-                           magic = changemonger.db._magic)
+                           simple = changemonger.db.simple,
+                           categories = changemonger.db.categories,
+                           magic = changemonger.db.magic)
 
 @app.route('/feature/<id>')
 def show_feature(id):
