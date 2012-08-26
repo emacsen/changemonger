@@ -15,32 +15,32 @@ def magic():
     features.append({'name': 'untagged node',
                      'ama': 'magic',
                      'types': ['node'],
-                     'precision': 0,
+                     'precision': 1,
                      'match': untagged})
     features.append({'name': 'untagged way',
                      'types': ['way'],
                      'ama': 'magic',
-                     'precision': 0,
+                     'precision': 1,
                      'match': untagged})
     features.append({'name': 'untagged relation',
                      'types': ['relation'],
                      'ama': 'magic',
-                     'precision': 0,
+                     'precision': 1,
                      'match': untagged})
     features.append({'name': 'unidentified node',
                      'types': ['node'],
                      'ama': 'magic',
-                     'precision': -1,
+                     'precision': 0,
                      'match': always})
     features.append({'name': 'unidentified way',
                      'types': ['way'],
                      'ama': 'magic',
-                     'precision': -1,
+                     'precision': 0,
                      'match': always})
     features.append({'name': 'unidentified relation',
                      'types': ['relation'],
                      'ama': 'magic',
-                     'precision': -1,
+                     'precision': 0,
                      'match': always})
     features.append({'name': 'building',
                      'ama': 'magic',
