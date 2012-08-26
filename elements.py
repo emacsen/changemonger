@@ -162,8 +162,8 @@ def add_local_relation_references(coll):
     for rel in relations:
         members = [ (i['type'], i['ref']) for i in rel['members']]
         for member in members:
-            type = member['type']
-            id = member['id']
+            type = member[0]
+            id = member[1]
             # We'll use a list comprehension here even though it
             # should only return a single element
             for ele in [e for e in coll if (e['type'] == type
