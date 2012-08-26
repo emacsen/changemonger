@@ -187,7 +187,7 @@ def add_remote_ways(coll):
             # right now
             continue
         data = osmapi.getWaysforNode(node['id'])
-        xml = et.XML(data)
+        xml = et.XML(data.encode('utf-8'))
         ways = [parser.parseWay(way) for way in xml.findall('way')]
         for way in ways:
             coll.append(way)
@@ -213,7 +213,7 @@ def add_remote_relations(coll):
         if ele['tags'] or ele.has_key('_ways') or ele.has_key('_relations'):
             continue
         data = osmapi.getRelationsforElement(ele['type'], ele['id'])
-        xml = et.XML(data)
+        xml = et.XML(data.encode('utf-8'))
         rels = [parser.parseRelation(rel) for rel in xml.findall('relation')]
         for rel in rels:
             coll.append(rel)
