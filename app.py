@@ -1,5 +1,5 @@
 ##  Changemonger: An OpenStreetMap change analyzer
-##  Copyright (C) 2012 Serge Wroclawki
+##  Copyright (C) 2012 Serge Wroclawski
 ##
 ##  This program is free software: you can redistribute it and/or modify
 ##  it under the terms of the GNU Affero General Public License as
