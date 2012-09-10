@@ -17,34 +17,103 @@
 """Contains functions related to Changemonger features for a yaml backend"""
 
 import inflect
-from sets import Set
 import yaml
 import os.path
 import imp
 
 inflection = inflect.engine()
 
+class BaseFeature:
+    """The base feature class"""
+    def __init__(self, name):
+        "Init the object"
+        self.name = name
+        self.types = []
+        self.categories = []
+        self.named = True
+        self.id = unicode(id(self))
+
+    def _typecheck(self, ele):
+        "Check that the element matches this feature's type"
+        if self.types:
+            if ele['type'] in self.types:
+                return True
+            else:
+                return False
+        else:
+            return True
+
+    def category(self, cat):
+        "Add a category to this feature"
+        self.categories.append(cat)
+    
+    def match(self, element):
+        "Generic function"
+        # Never use this directly
+        return True
+
+    @property
+    def plural(self):
+        "Returns the plural version of the feature's name"
+        return inflection.plural(self.name)
+
+    @property
+    def precision(self):
+        "Returns the precision of the object. This should be set"
+        return 0
+
+class SimpleFeature(BaseFeature):
+    def __init__(self, name):
+        "Init simple feature"
+        self.tags = []
+        BaseFeature.__init__(self, name)
+
+    def tag(self, tg):
+        "Add a tag to object's tags"
+        self.tags.append(tg)
+
+    def match(self, element):
+        "Matches for simple features uses tags"
+        if self._typecheck(element):
+            for tag in self.tags:
+                if not tag in element['_tags']:
+                    return False
+            else:
+                return True
+        else:
+            return False
+
+    @property
+    def precision(self):
+        "Simple features have a precision of 10 + # of tags by default"
+        return 10 + len(self.tags)
+
+class Category(BaseFeature):
+    "Feature categories"
+    def __init__(self, name):
+        "Init a category"
+        self.features = []
+        BaseFeature.__init__(self, name)
+
+    def register(self, feature):
+        "Register a feature to this category"
+        self.features.append(feature)
+    
+    def match(self, element):
+        "The category checks all features for matches"
+        for feature in self.features:
+            if feature.match(element):
+                return True
+        return False
+
+    @property
+    def precision(self):
+        "Categories are precision 3 by default"
+        return 3
+
 def compare_precision(a, b):
     """Compare the precision of two features"""
-    return precision(b) - precision(a)
-
-def pluralize(feature):
-    """Pluralize a feature (or category)"""
-    return feature.get('plural', inflection.plural(feature['name']))
-
-def precision(feature):
-    """Get the precision of a feature"""
-    ### Either use the explicit precision value or the number of tags * 2
-    ### (this way we know that odd numbers are automatically set, ie
-    ### building=yes is 1
-    ama = feature.get('ama')
-    if ama == 'category':
-        return feature.get('precision', 3)
-    elif ama == 'magic':
-        return feature.get('precision', 2)
-    else:
-        # Assume it's a plain feature
-        return feature.get('precision', len(feature['tags']) + 10)
+    return b.precision - a.precision
 
 class FeatureDB:
     """This is the abstraction against using the features"""
@@ -55,8 +124,7 @@ class FeatureDB:
         # We almost never iterate through categories, but we do call
         # them by name a lot
         self._categories = {}
-        # This is only used for external apps (like the web app) to
-        # look for features by ID
+        # The index contains unique IDs for features
         self._index = {}
 
         # Now load the actual features
@@ -65,17 +133,21 @@ class FeatureDB:
         # We're going to just assume the directory exists for now
         
         if os.path.exists(os.path.join(directory, 'features.yaml')):
-            db._load_yaml_simple_features(
+            self._load_yaml_simple_features(
                 os.path.join(directory, 'simple.yaml'))
         elif os.path.isdir(os.path.join(directory, 'simple')):
             self._load_simple_directory(os.path.join(directory, 'simple'))
         
         if os.path.exists(os.path.join(directory, 'categories.yaml')):
-                self._load_yaml_categories(os.path.join(directory,
-                                                        'categories.yaml'))
+            self._load_yaml_categories(os.path.join(directory,
+                                                    'categories.yaml'))
 
         if os.path.exists(os.path.join(directory, 'magic.py')):
             self._load_magic_file(directory)
+    
+    @property
+    def all(self):
+        return self._simple + self._categories.values() + self._magic
 
     def _load_magic_file(self, directory):
         fp, pathname, description = imp.find_module('magic', [directory])
@@ -83,10 +155,8 @@ class FeatureDB:
             module = imp.load_module('magic', fp, pathname, description)
             features = module.magic()
             for feature in features:
-                feature['id'] = feature.get('id', id(feature))
-                feature['id'] = unicode(feature['id'])
                 self._magic.append(feature)
-                self._index[feature['id']] = feature
+                self._index[feature.id] = feature
         finally:
             if fp:
                 fp.close()
@@ -99,35 +169,52 @@ class FeatureDB:
                     self._load_yaml_simple_features(
                         os.path.join(dirname, fname))
 
-    def _get_or_make_category(self, category_name):
+    def _get_or_make_category(self, name):
         """Either retrieve a category or create one as necessary"""
-        category = self._categories.get(category_name)
+        category = self._categories.get(name)
         if not category:
-            category = {'name': category_name, 'ama': 'category',
-                        'features': []}
-            category['id'] = unicode(id(category))
-            self._categories[category_name] = category
-            self._index[category['id']] = category
+            category = Category(name)
+            self._categories[name] = category
+            self._index[category.id] = category
         return category
 
-    def _yaml_dict_to_feature(self, item):
-        """Convert yaml item to feature"""
-        feature = item
-        feature['ama'] = 'simple'
-        tags = item.get('tags', [])
-        if isinstance(tags, basestring):
-            feature['tags'] = tags = [tags]
-        category_names = item.get('categories', [])
-        if isinstance(category_names, basestring):
-            category_names = [category_names]
-        categories = []
-        for cat_name in category_names:
-            category = self._get_or_make_category(cat_name)
-            category['features'].append(feature)
-            categories.append(category)
-        feature['categories'] = categories
+    def _yaml_item_to_feature(self, item):
+        feature = SimpleFeature(item['name'])
+        # type
+        if item.has_key('types'):
+            if isinstance(item['types'], basestring):
+                feature.types = item['types'].split(',')
+            else:
+                feature.types = item['types']
+        # id (virtually unused)
+        if item.has_key('id'):
+            feature.id = unicode(item['id'])
+        # tags
+        if isinstance(item['tags'], basestring):
+            tags = item['tags'].split(',')
+        else:
+            tags = item['tags']
+        for tag in tags:
+            feature.tag(tag)
+        # plural
+        if item.has_key('plural'):
+            feature.plural = item['plural']
+        # precision
         if item.has_key('precision'):
-            feature['precision'] = int(item['precision'])
+            feature.precision = int(item['precision'])
+        # categories
+        if item.has_key('categories'):
+            if isinstance(item['categories'], basestring):
+                categories = item['categories'].split(',')
+            else:
+                categories = item['categories']
+            for cat_name in categories:
+                category = self._get_or_make_category(cat_name)
+                category.register(feature)
+                feature.category(category)
+        # Named?
+        if item.has_key('named'):
+            feature.named = item['named']
         return feature
 
     def _load_yaml_categories(self, fname):
@@ -136,12 +223,7 @@ class FeatureDB:
             data = fd.read()
             yamldata = yaml.safe_load(data)
             for item in yamldata:
-                name = item.get('name')
-                if not name:
-                    continue
-                category = self._get_or_make_category(name)
-                if item.has_key('precision'):
-                    category['precision'] = int(item['precision'])
+                category = self._get_or_make_category(item['name'])
                 
     def _load_yaml_simple_features(self, fname):
         """Load a yaml of features file into the database"""
@@ -149,39 +231,15 @@ class FeatureDB:
             data = fd.read()
             yamldata = yaml.safe_load(data)
             for item in yamldata:
-                feature = self._yaml_dict_to_feature(item)
-                feature['id'] = feature.get('id', id(feature))
-                feature['id'] = unicode(feature['id'])
+                # Make this a feature
+                feature = self._yaml_item_to_feature(item)
                 self._simple.append(feature)
-                self._index[feature['id']] = feature
-
-    def matchFeature(self, feature, ele):
-        """Check if element matches feature"""
-        if feature.has_key('types'):
-            if not ele['type'] in feature['types']:
-                return False
-        for tag in feature['tags']:
-            if not tag in ele['_tags']:
-                return False
-            return feature
-        return False
-
-    def matchMagic(self, feature, ele):
-        """Check if element matches magic feature"""
-        # magic features act like normal features, but they have a
-        # match function stored as an anonymous function in their
-        # 'match' key
-        if feature.has_key('types'):
-            if not ele['type'] in feature['types']:
-                return False
-        if feature['match'](ele):
-            return feature
-
-    def matchCategory(self, category, ele):
-        """Check if element matches category"""
-        for feature in category['features']:
-            if self.matchFeature(feature, ele):
-                return category
+                self._index[feature.id] = feature
+    
+    def add_index(self, feature):
+        if self.get(feature.id):
+            print "BAD BAD BAD!!!! ID CONFLICT BETWEEN %s and %s" % (self.get(feature.id).name, feature.name)
+        self._index[feature.id] = feature
 
     def matchBestSolo(self, ele):
         """Returns the best matching feature for an element"""
@@ -190,35 +248,20 @@ class FeatureDB:
         # and dirty and it works.
         match = None
         match_val = -10
-        for feature in self._simple:
-            if (precision(feature) > match_val
-                and self.matchFeature(feature, ele)):
+        for feature in self.all:
+            if feature.precision > match_val and feature.match(ele):
                 match = feature
-                match_val = precision(feature)
-        if not match:
-            # The object doesn't match the normal features, we'll have
-            # to test it against the base "magic" features.
-            for feature in self._magic:
-                if (precision(feature) > match_val
-                     and self.matchMagic(feature, ele)):
-                    # We rely on the fact that magic features are
-                    # always listed in order of precision
-                    return match
+                match_val = feature.precision
+        return match
 
     def matchAllSolo(self, ele):
         """Return all the matching features and categories for an
         element, sorted by precision
         """
-        features = [feature for feature in self._simple
-                    if self.matchFeature(feature, ele)]
-        cat_names = Set()
-        for feature in features:
-            for category in feature['categories']:
-                cat_names.add(category['name'])
-        categories = [self._categories[name] for name in cat_names]
-        magic = [mag for mag in self._magic if self.matchMagic(mag, ele)]
-        features.extend(categories)
-        features.extend(magic)
+        features = []
+        for feature in self.features:
+            if feature.match(ele):
+                features.append(feature)
         return(sorted(features, cmp=compare_precision))
 
     def matchEach(self, coll):
@@ -226,21 +269,25 @@ class FeatureDB:
         return [self.matchAllSolo(ele) for ele in coll]
 
     def get(self, id):
+        "Retrieve an object by index id"
         return self._index[id]
 
     @property
     def simple(self):
+        "Retrieve the simple features"
         return self._simple
     
     @property
     def categories(self):
+        "Retrieve the categories"
         return self._categories.values()
     
     @property
     def magic(self):
+        "Retrieve the magic features"
         return self._magic
 
     @property
     def features(self):
+        "Return all features"
         return self._simple + self._categories.values() + self._magic
-

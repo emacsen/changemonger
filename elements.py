@@ -40,14 +40,14 @@ def display_name(ele, feature):
     name
 
     """
-    if not ele.get('tags') or not feature.get('named'):
-        return u"%s" % (p.a(feature['name']))
+    if not ele.get('tags') or not feature.named:
+        return u"%s" % (p.a(feature.name))
     elif ( 'name' in ele['tags'].keys() or
          'brand' in ele['tags'].keys() or
          'operator' in ele['tags'].keys()):
         return common_name(ele)
     else:
-        return u"an unnamed " + feature['name']
+        return u"an unnamed " + feature.name
 
 def get_user(ele):
     """Takes an element and returns a displable username"""
@@ -93,7 +93,7 @@ def grouped_to_english(coll):
     for elements, feature in coll:
         if len(elements) > 1:
             l.append("%s %s" % (p.number_to_words(len(elements)),
-                                features.pluralize(feature)))
+                                feature.plural))
         else:            
             l.append(display_name(elements[0], feature))
     return p.join(l)

@@ -83,6 +83,7 @@
 - name: residential road
   categories: road
   tags: highway=residential
+  types: ['way', 'relation']
 
 - name: rumble strip
   categories:

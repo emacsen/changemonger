@@ -6,4 +6,6 @@
   %p << Object matched to
   %ul
     -for feature in features:
-      %li << {{feature.name}} ({{precision(feature)}})
+      %li
+        %a href="/feature/{{feature.id}}" << {{feature.name}}
+      

@@ -17,13 +17,12 @@
 from flask import Flask, jsonify, request, render_template
 app = Flask(__name__)
 app.debug = True
-from features import precision
 import helpers
 from elements import common_name, display_name
 from werkzeug import ImmutableDict
 import changemonger
 from inspect import getsource
-from features import pluralize
+from pprint import pformat
 class FlaskWithHamlish(Flask):
     jinja_options = ImmutableDict(
         extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_',
@@ -31,9 +30,8 @@ class FlaskWithHamlish(Flask):
  
 app = FlaskWithHamlish(__name__)
 app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
-app.jinja_env.globals.update(precision=precision)
 app.jinja_env.globals.update(getsource=getsource)
-app.jinja_env.globals.update(pluralize=pluralize)
+app.jinja_env.globals.update(pprint=pformat)
 
 @app.route('/')
 def index():

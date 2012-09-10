@@ -6,52 +6,73 @@
 list of magic features
 
 """
+from features import BaseFeature
+
+class UnidentifiedElement(BaseFeature):
+    def __init__(self, type):
+        BaseFeature.__init__(self, "unidentified " + type)
+        self.precision = 0
+        self.types = [type]
+
+    def match(self, ele):
+        return self._typecheck(ele)
+
+class UntaggedElement(BaseFeature):
+    def __init__(self, type):
+        BaseFeature.__init__(self, "untagged " + type)
+        self.precision = 1
+        self.types = [type]
+
+    def match(self, ele):
+        return self._typecheck(ele) and not ele['tags']
+
+class UnidentifiedPolygon(BaseFeature):
+    def __init__(self):
+        BaseFeature.__init__(self, "unidentified polygon")
+        self.precision = 2
+        self.types = ['way']
+
+    def match(self, ele):
+        return (self._typecheck(ele) and ele['nd'][0] == ele['nd'][-1])
+
+class Building(BaseFeature):
+    def __init__(self):
+        BaseFeature.__init__(self, "building")
+        self.precision = 5
+        self.types = ['way', 'relation']
+
+    def match(self, ele):
+        return (self._typecheck(ele) and ele['tags'].has_key('building'))
+
+class ManMade(BaseFeature):
+    def __init__(self):
+        BaseFeature.__init__(self, "man made feature")
+        self.precision = 5
+        
+    def match(self, ele):
+        return ele['tags'].has_key('man_made')
+        
+
+class Shop(BaseFeature):
+    def __init__(self):
+        BaseFeature.__init__(self, "shop")
+        self.precision = 6
+        
+    def match(self, ele):
+        return ele['tags'].has_key('shop')
+
 def magic():
     """Create the magic feature set"""
     features = []
-    # Pythonistias will complain about using lambda this way- oh well.
-    untagged = lambda ele: (len(ele['tags']) == 0)
-    always = lambda ele: True
-    features.append({'name': 'untagged node',
-                     'ama': 'magic',
-                     'types': ['node'],
-                     'precision': 1,
-                     'match': untagged})
-    features.append({'name': 'untagged way',
-                     'types': ['way'],
-                     'ama': 'magic',
-                     'precision': 1,
-                     'match': untagged})
-    features.append({'name': 'untagged relation',
-                     'types': ['relation'],
-                     'ama': 'magic',
-                     'precision': 1,
-                     'match': untagged})
-    features.append({'name': 'unidentified node',
-                     'types': ['node'],
-                     'ama': 'magic',
-                     'precision': 0,
-                     'match': always})
-    features.append({'name': 'unidentified way',
-                     'types': ['way'],
-                     'ama': 'magic',
-                     'precision': 0,
-                     'match': always})
-    features.append({'name': 'unidentified relation',
-                     'types': ['relation'],
-                     'ama': 'magic',
-                     'precision': 0,
-                     'match': always})
-    features.append({'name': 'building',
-                     'ama': 'magic',
-                     'precision': 2,
-                     'match': lambda ele: ele['tags'].has_key('building')})
-    features.append({'name': 'shop',
-                     'ama': 'magic',
-                     'precision': 5,
-                     'match': lambda ele: ele['tags'].has_key('shop')})
-    features.append({'name': 'man made feature',
-                     'ama': 'magic',
-                     'precision': 3,
-                     'match': lambda ele: ele['tags'].has_key('man_made')})
+    features.append(UnidentifiedElement("node"))
+    features.append(UnidentifiedElement("way"))
+    features.append(UnidentifiedElement("relation"))
+    features.append(UntaggedElement("node"))
+    features.append(UntaggedElement("way"))
+    features.append(UntaggedElement("relation"))
+    features.append(UnidentifiedPolygon())
+    features.append(Building())
+    features.append(ManMade())
+    features.append(Shop())
+
     return features
