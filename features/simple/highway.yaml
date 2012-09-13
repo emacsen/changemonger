@@ -8,10 +8,18 @@
     - service=alley
   named: False
 
+- name: bridleway
+  tags: highway=bridleway
+  categories: road
+
 - name: chicane
   categories: traffic feature
   tags: traffic_calming=chicane
   named: False
+
+- name: cycleway
+  categories: path
+  tags: highway=cycleway
 
 - name: driveway
   categories:
@@ -41,6 +49,10 @@
     - service=emergency_access
   named: False
 
+- name: footway
+  tags: highway=footway
+  categories: path
+
 - name: living street
   types: way
   categories: road
@@ -57,6 +69,19 @@
 - name: motorway link
   categories: road
   tags: highway=motorway_link
+
+- name: steps
+  categories: path
+  tags: highway=steps
+  named: false
+
+- name: path
+  categories: path
+  tags: highway=path
+  
+- name: pedestrian highway
+  categories: road
+  tags: highway=pedestrian
 
 - name: primary road
   categories: road

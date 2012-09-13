@@ -1,0 +1,48 @@
+---
+- name: bicycle route
+  types: relation
+  tags:
+    - type=route
+    - route=bicycle
+  categories:
+    - route
+    - bicycle route
+
+- name: Local Cycle Network route
+  types: relation
+  tags:
+    - type=route
+    - route=bicycle
+    - network=lcn
+  categories:
+    - route
+    - bicycle route
+
+- name: mountain bike route
+  types: relation
+  tags:
+    - type=route
+    - network=mtb
+  categories:
+    - route
+    - bicycle route
+
+- name: National Cycle Network route
+  types: relation
+  tags:
+    - type=route
+    - route=bicycle
+    - network=ncn
+  categories:
+    - route
+    - bicycle route
+
+- name: Regional Cycle Network route
+  types: relation
+  tags:
+    - type=route
+    - route=bicycle
+    - network=rcn
+  categories:
+    - route
+    - bicycle route
