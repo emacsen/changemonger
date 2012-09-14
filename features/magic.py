@@ -8,10 +8,19 @@ list of magic features
 """
 from features import BaseFeature
 
+class OSMElement(BaseFeature):
+    def __init__(self):
+        BaseFeature.__init__(self, "unidentified object")
+        self.precision = 0
+        self.plural = "assorted objects"
+
+    def match(self, ele):
+        return True
+
 class UnidentifiedElement(BaseFeature):
     def __init__(self, type):
         BaseFeature.__init__(self, "unidentified " + type)
-        self.precision = 0
+        self.precision = 1
         self.types = [type]
 
     def match(self, ele):
@@ -20,7 +29,7 @@ class UnidentifiedElement(BaseFeature):
 class UntaggedElement(BaseFeature):
     def __init__(self, type):
         BaseFeature.__init__(self, "untagged " + type)
-        self.precision = 1
+        self.precision = 2
         self.types = [type]
 
     def match(self, ele):
@@ -29,7 +38,7 @@ class UntaggedElement(BaseFeature):
 class UnidentifiedPolygon(BaseFeature):
     def __init__(self):
         BaseFeature.__init__(self, "unidentified polygon")
-        self.precision = 2
+        self.precision = 3
         self.types = ['way']
 
     def match(self, ele):
@@ -64,6 +73,7 @@ class Shop(BaseFeature):
 def magic():
     """Create the magic feature set"""
     features = []
+    features.append(OSMElement())
     features.append(UnidentifiedElement("node"))
     features.append(UnidentifiedElement("way"))
     features.append(UnidentifiedElement("relation"))
