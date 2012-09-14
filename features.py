@@ -32,6 +32,20 @@ class BaseFeature:
         self.categories = []
         self.named = True
         self.id = unicode(id(self))
+        self._prominence = 0
+
+    @property
+    def prominence(self, ele):
+        score = 0
+        tags = ele['tags']
+        if len(ele['tags']) > 0:
+            score += 1
+        if ( tags.get('name') or tags.get('brand') or tags.get('operator') ):
+            score += 2
+        if tags.get('historical') or tags.get('wikipedia'):
+            score += 3
+
+        return score + self._prominence
 
     def _typecheck(self, ele):
         "Check that the element matches this feature's type"
@@ -215,6 +229,11 @@ class FeatureDB:
         # Named?
         if item.has_key('named'):
             feature.named = item['named']
+
+        # Prominence
+        if item.has_key('promience'):
+            feature._promience = item['prominence']
+
         return feature
 
     def _load_yaml_categories(self, fname):
