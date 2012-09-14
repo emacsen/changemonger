@@ -42,7 +42,7 @@ class BaseFeature:
             score += 1
         if ( tags.get('name') or tags.get('brand') or tags.get('operator') ):
             score += 2
-        if tags.get('historical') or tags.get('wikipedia'):
+        if tag.get('historical') or tags.get('wikipedia'):
             score += 3
 
         return score + self._prominence
