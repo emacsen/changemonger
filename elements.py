@@ -22,6 +22,18 @@ import parser
 import features
 p = inflect.engine()
 
+import logging
+from pprint import pformat
+
+#logging.basicConfig(level=logging.DEBUG)
+
+def retrieve(coll, type, id, version = None):
+    for item in coll:
+        if type == item['type'] and id == item['id']:
+            if version:
+                if version == item['version']:
+                    return item
+
 def common_name(ele):
     """Take an element and return its common name"""
     if ele['tags'].has_key('brand'):
@@ -141,6 +153,7 @@ def add_local_way_references(coll):
     nodes
 
     """
+    logging.debug("Adding local way references")
     # This isn't the most efficient way to do this
     nodes = [ele for ele in coll if ele['type'] == 'node']
     ways = [ele for ele in coll if ele['type'] == 'way']
@@ -154,11 +167,45 @@ def add_local_way_references(coll):
             else:
                 node['_ways'] = [way['id']]
 
+def add_way_reference(coll, way):
+    "Adds way references for a specific way and a collection of element"
+    nodes = [ele for ele in coll if ele['type'] == 'node']
+    for nd in way['nd']:
+        node = retrieve(coll, 'node', nd)
+        if node:
+            logging.debug("Adding way reference for way %s to node %s" % (
+                str(way['id']), str(node['id'])))
+            if node.has_key('_ways'):
+                node['_ways'].append(way['id'])
+            else:
+                node['_ways'] = [way['id']]
+
+def add_relation_references(coll, relation):
+    "Add relation references for a specific relation and collection of elements"
+    members = relation['members']
+    for member in members:
+        id = member['ref']
+        type = member['type']
+        obj = None
+        for element in coll:
+            if element['type'] == type and element['id'] == id:
+                obj = element
+                break
+        if obj:
+            logging.debug("Adding relation reference for relation %s to %s %s"
+                          % (str(relation['id']), obj['type'], obj['id']))
+            if obj.get('_relations'):
+                obj['_relations'].append(relation)
+            else:
+                obj['_relations'] = [relation]
+
+
 def add_local_relation_references(coll):
     """Takes a collection of elements and makes connections between
     the elenments for relations as necessary
 
     """
+    logging.debug("Adding local relation references")
     # Same here about inefficiency
     relations = [ele for ele in coll if ele['type'] == 'relation']
     for rel in relations:
@@ -180,36 +227,45 @@ def add_remote_ways(coll):
     """Takes a collection of elements and adds way references for
     nodes if they don't have tags, or existing ways
     """
+    logging.debug("Adding remote way references. %d items in the collection."
+                  % (len(coll)))
     nodes = [ele for ele in coll if (ele['type'] == 'node'
-                                     and not ele['tags']
-                                     and not ele.has_key('_ways'))]
+                                     and not ele.get('tags')
+                                     and not ele.get('_ways')
+                                     and not ele.get('_relations'))]
+    logging.debug("%d nodes to consider"
+                  % (len(nodes)))
+    logging.debug("Nodes: \n%s" % pformat(nodes))
     for node in nodes:
-        if node['tags'] or node.has_key('_ways'):
+        if node['tags'] or node.get('_ways') or node.get('_relations'):
             # It only needs to have one way for us to care. We're not
             # looking at all the object relationships, just the first
             # right now
             continue
-        logging.debug("Node %s has no remote ways. Retrieving." %
+        logging.debug("Node %s has no remote ways or relations. Retrieving." %
                       str(node['id']))
         data = osmapi.getWaysforNode(node['id'])
         xml = et.XML(data.encode('utf-8'))
         ways = [parser.parseWay(way) for way in xml.findall('way')]
         for way in ways:
             logging.debug("Adding new way %s to collection" % way['id'])
+            logging.debug(pformat(way))
             coll.append(way)
-            # This is a lot of looping we could avoid if we had an index...
-            for nd in nodes:
-                if not nd['id'] in way['nd']:
-                    continue
-                logging.debug("Node %s in new way. Adding callback reference" %
-                              str(nd['id']))
-                if nd.has_key('_ways'):
-                    nd['_ways'].append(way)
+            target_nodes = [retrieve(coll, 'node', node_id) for node_id in way['nd']]
+            target_nodes = [node for node in target_nodes if node]
+            logging.debug("%d nodes potentially effected" % len(target_nodes))
+            for node in target_nodes:
+                logging.debug("Adding way reference for way %s to node %s" % (
+                    str(way['id']), str(node['id'])))
+                if node.has_key('_ways'):
+                    node['_ways'].append(way['id'])
                 else:
-                    nd['_ways'] = [way]
+                    node['_ways'] = [way['id']]
+            logging.debug("Done adding references for way %s" % way['id'])
 
 def add_remote_relations(coll):
     """Takes an element of collections and fetches relations as necessary"""
+    logging.debug("Adding remote relations")
     elements = [ele for ele in coll if (not ele['tags']
                                         and not ele.has_key('_relations'))]
     nodes = [ele for ele in coll if ele['type'] == 'node']
@@ -218,7 +274,7 @@ def add_remote_relations(coll):
     for ele in elements:
         # We keep changing the elmements in place, so we must keep
         # checking them
-        if ele['tags'] or ele.has_key('_ways') or ele.has_key('_relations'):
+        if ele['tags'] or ele.get('_ways') or ele.get('_relations'):
             continue
         data = osmapi.getRelationsforElement(ele['type'], ele['id'])
         xml = et.XML(data.encode('utf-8'))
@@ -226,22 +282,5 @@ def add_remote_relations(coll):
         for rel in rels:
             logging.debug("Adding relation %s to collection" % str(rel['id']))
             coll.append(rel)
-            for member in rel['members']:
-                id = member['ref']
-                type = member['type']
-                obj = None
-                if type == 'node':
-                    obj = [m for m in nodes if m['id'] == id][0]
-                elif type == 'way':
-                    obj =  [m for m in ways if m['id'] == id][0]
-                else:
-                    obj = [m for m in relations if m['id'] == id][0]
-                if obj:
-                    logging.debug("%s %s is in new relation. Adding callback reference" %
-                                  ( str(obj['type']), str(obj['id'])))
-                    # Now add the relation callback
-                    if obj.has_key('_relations'):
-                        obj['_relations'].append(rel)
-                    else:
-                        obj['_relations'] = [rel]
+            add_relation_references(coll, rel)
 
