@@ -66,16 +66,17 @@ def changeset(id):
     change = parser.parseChange(xml)
     changeset['actions'] = change
     # Now collect all the objects in this changeset for processing
+    eles = []
     for i in changeset['actions']:
-        eles = i[1]        
-        # Make internal references based on info we already have
-        elements.add_local_way_references(eles)
-        elements.add_local_relation_references(eles)
-        # Now collect the rest from remote data
-        elements.add_remote_ways(eles)
-        elements.add_remote_relations(eles)
-        elements.remove_unnecessary_items(eles)
-        elements.sort_elements(eles)
+        eles.extend(i[1])
+    # Make internal references based on info we already have
+    elements.add_local_way_references(eles)
+    elements.add_local_relation_references(eles)
+    # Now collect the rest from remote data
+    elements.add_remote_ways(eles)
+    elements.add_remote_relations(eles)
+    elements.remove_unnecessary_items(eles)
+    elements.sort_elements(eles)
     return changeset
 
 def changeset_sentence(cset):
