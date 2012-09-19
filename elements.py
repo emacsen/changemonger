@@ -148,7 +148,7 @@ def add_local_way_references(coll):
         nd = way['nd']
         for node in [node for node in nodes if node['id'] in nd]:
             logging.debug("Adding way reference for way %s to node %s" % (
-                str(way['id']), str(node['id']))
+                str(way['id']), str(node['id'])))
             if node.has_key('_ways'):
                 node['_ways'].append(way['id'])
             else:
@@ -170,9 +170,7 @@ def add_local_relation_references(coll):
             # should only return a single element
             for ele in [e for e in coll if (e['type'] == type
                                             and e['id'] == id)]:
-                logging.debug("Adding relation reference for relation %s to %s %s" % ( str(rel['id']), e['type'], str(e['id']))
- 
-                str(way['id']), str(node['id']))
+                logging.debug("Adding relation reference for relation %s to %s %s" % ( str(rel['id']), e['type'], str(e['id'])))
                 if ele.has_key('_relations'):
                     ele['_relations'].append(rel['id'])
                 else:
@@ -205,7 +203,7 @@ def add_remote_ways(coll):
                     continue
                 logging.debug("Node %s in new way. Adding callback reference" %
                               str(nd['id']))
-                elif nd.has_key('_ways'):
+                if nd.has_key('_ways'):
                     nd['_ways'].append(way)
                 else:
                     nd['_ways'] = [way]
@@ -240,7 +238,7 @@ def add_remote_relations(coll):
                     obj = [m for m in relations if m['id'] == id][0]
                 if obj:
                     logging.debug("%s %s is in new relation. Adding callback reference" %
-                                  ( str(obj['type']), str(obj['id']))
+                                  ( str(obj['type']), str(obj['id'])))
                     # Now add the relation callback
                     if obj.has_key('_relations'):
                         obj['_relations'].append(rel)

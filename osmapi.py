@@ -34,7 +34,7 @@ def getNode(id, version = None):
     else:
         url = "http://%s/api/0.6/node/%s" % (server, id)
     logging.debug("Retrieving %s for node %s version %s" % (
-        url, id, version)
+        url, id, version))
     r = rs.get(url)
     r.raise_for_status()
     return r.text
@@ -46,7 +46,7 @@ def getWay(id, version = None):
     else:
         url = "http://%s/api/0.6/way/%s" % (server, id)
     logging.debug("Retrieving %s for way %s version %s" % (
-        url, id, version)
+        url, id, version))
     r = rs.get(url)
     r.raise_for_status()
     return r.text
@@ -58,7 +58,7 @@ def getRelation(id, version = None):
     else:
         url = "http://%s/api/0.6/relation/%s" % (server, id)
     logging.debug("Retrieving %s for relation %s version %s" % (
-        url, id, version)
+        url, id, version))
     r = rs.get(url)
     r.raise_for_status()
     return r.text
@@ -67,7 +67,7 @@ def getChangeset(id):
     id = str(id)
     url = "http://%s/api/0.6/changeset/%s" % (server, id)
     logging.debug("Retrieving %s for changeset %s metadata" % (
-        url, id)
+        url, id))
     r = rs.get(url)
     r.raise_for_status()
     return r.text
@@ -76,7 +76,7 @@ def getChange(id):
     id = str(id)
     url = "http://%s/api/0.6/changeset/%s/download" % (server, id)
     logging.debug("Retrieving %s for changeset %s data" % (
-        url, id)
+        url, id))
     r = rs.get(url)
     r.raise_for_status()
     return r.text
