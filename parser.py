@@ -50,11 +50,13 @@ def parseChange (osmchange):
         elements = []
         for element in action.getchildren():
             if element.tag == 'node':
-                elements.append(parseNode(element))
+                ele = parseNode(element)
             elif element.tag == 'way':
-                elements.append(parseWay(element))
+                ele = parseWay(element)
             elif element.tag == 'relation':
-                elements.append(parseRelation(element))
+                ele = parseRelation(element)
+            ele['_action'] == action.tag
+            elements.append(ele)
         c.append((action.tag, elements))
     return c
 
