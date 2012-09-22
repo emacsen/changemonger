@@ -14,7 +14,7 @@ class OSMElement(BaseFeature):
         self.precision = 0
         self.plural = "assorted objects"
 
-    def match(self, ele):
+    def _match(self, ele):
         return True
 
 class UnidentifiedElement(BaseFeature):
@@ -23,7 +23,7 @@ class UnidentifiedElement(BaseFeature):
         self.precision = 1
         self.types = [type]
 
-    def match(self, ele):
+    def _match(self, ele):
         return self._typecheck(ele)
 
 class UntaggedElement(BaseFeature):
@@ -32,7 +32,7 @@ class UntaggedElement(BaseFeature):
         self.precision = 2
         self.types = [type]
 
-    def match(self, ele):
+    def _match(self, ele):
         return self._typecheck(ele) and not ele['tags']
 
 class UnidentifiedPolygon(BaseFeature):
@@ -41,7 +41,7 @@ class UnidentifiedPolygon(BaseFeature):
         self.precision = 3
         self.types = ['way']
 
-    def match(self, ele):
+    def _match(self, ele):
         return (self._typecheck(ele) and ele['nd'][0] == ele['nd'][-1])
 
 class Building(BaseFeature):
@@ -50,7 +50,7 @@ class Building(BaseFeature):
         self.precision = 5
         self.types = ['way', 'relation']
 
-    def match(self, ele):
+    def _match(self, ele):
         return (self._typecheck(ele) and ele['tags'].has_key('building'))
 
 class ManMade(BaseFeature):
@@ -58,7 +58,7 @@ class ManMade(BaseFeature):
         BaseFeature.__init__(self, "man made feature")
         self.precision = 5
         
-    def match(self, ele):
+    def _match(self, ele):
         return ele['tags'].has_key('man_made')
         
 
@@ -67,7 +67,7 @@ class Shop(BaseFeature):
         BaseFeature.__init__(self, "shop")
         self.precision = 6
         
-    def match(self, ele):
+    def _match(self, ele):
         return ele['tags'].has_key('shop')
 
 def magic():

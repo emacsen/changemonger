@@ -64,8 +64,8 @@ class BaseFeature:
     
     def match(self, element):
         "Generic function"
-        # Never use this directly
-        return True
+        if self._match(element):
+            return FeatureMatch(self, element)
 
     @property
     def plural(self):
@@ -88,7 +88,7 @@ class SimpleFeature(BaseFeature):
         "Add a tag to object's tags"
         self.tags.append(tg)
 
-    def match(self, element):
+    def _match(self, element):
         "Matches for simple features uses tags"
         if self._typecheck(element):
             for tag in self.tags:
@@ -115,7 +115,7 @@ class Category(BaseFeature):
         "Register a feature to this category"
         self.features.append(feature)
     
-    def match(self, element):
+    def _match(self, element):
         "The category checks all features for matches"
         for feature in self.features:
             if feature.match(element):
@@ -127,9 +127,48 @@ class Category(BaseFeature):
         "Categories are precision 3 by default"
         return 3
 
+class FeatureMatch:
+    def __init__(feature, *elements):
+        self.feature = feature
+        self.elements = elements
+
+    @property
+    def prominence(self):
+        prominences = [self.feature.precision(ele) for ele in self.elements]
+        avg = sum(promiences)/len(prominences)
+        return avg
+
+    @property
+    def name(self):
+        if len(self.elements) == 1:
+            tags = self.element['tags']
+            if not tags or not self.feature.named:
+                return u"%s" % (inflection.a(self.feature.name))
+            elif tags.get('brand'):
+                a = inflection.a(tags['brand'])
+                return "%u %u" % (a, tags['brand'])
+            elif tags.get('operator'):
+                a = inflection.a(tags['operator'])
+                return "%u %u" % (a, tags['operator'])
+            elif tags.get('name'):
+                return tags['name']
+            else:
+                return u'an unnamed ' + self.feature.name
+            else:
+                return u'%u %u' % (
+                    inflection.number_to_words(len(self.elemenets)),
+                    self.feature.plural)
+
 def compare_precision(a, b):
     """Compare the precision of two features"""
     return b.precision - a.precision
+
+def compare_prominence_precision(a, b):
+    prominence_delta = b.prominence - a.prominence
+    if prominence_delta == 0:
+        return b.precision - a.precision
+    else:
+        return prominence_delta
 
 class FeatureDB:
     """This is the abstraction against using the features"""
@@ -264,8 +303,8 @@ class FeatureDB:
     def add_index(self, feature):
         """Add feature id to internal id index"""
         if self.get(feature.id):
-            ### We need a real way to handle this...
-            print "BAD BAD BAD!!!! ID CONFLICT BETWEEN %s and %s" % (self.get(feature.id).name, feature.name)
+            print "BAD BAD BAD!!!! ID CONFLICT BETWEEN %s and %s" % (
+                self.get(feature.id).name, feature.name)
         self._index[feature.id] = feature
 
     def matchBestSolo(self, ele):
@@ -282,14 +321,15 @@ class FeatureDB:
         return match
 
     def matchAllSolo(self, ele):
-        """Return all the matching features and categories for an
-        element, sorted by precision
+        """Return all the matching FeatureElement for element, sorted
+        by prominence and then precision"
         """
-        features = []
+        matches = []
         for feature in self.features:
-            if feature.match(ele):
-                features.append(feature)
-        return(sorted(features, cmp=compare_precision))
+            match = feature.match(ele)
+            if match:
+                matches.append(match)
+        return(sorted(features, cmp=compare_prominence_precision))
 
     def matchEach(self, coll):
         """Returns all the matches for all the elements in the collection"""
