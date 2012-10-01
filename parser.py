@@ -55,7 +55,7 @@ def parseChange (osmchange):
                 ele = parseWay(element)
             elif element.tag == 'relation':
                 ele = parseRelation(element)
-            ele['_action'] == action.tag
+            ele['_action'] = action.tag
             elements.append(ele)
         c.append((action.tag, elements))
     return c
