@@ -22,6 +22,7 @@ import xml.etree.ElementTree as et
 import parser
 import os
 import elements
+from sets import Set
 
 db = FeatureDB()
 
@@ -81,10 +82,24 @@ def changeset(id):
 
 def changeset_sentence(cset):
     """Take a changeset object and return a sentence"""
+    action_hash = {
+        'create': 'added',
+        'modify': 'modified',
+        'delete': 'deleted'}
+    # Future versions will be able to handle multiple users
     user = elements.get_user(cset)
-    # A future version will actually look at the action types
-    action = 'edited'
+    # A future version will do more complex action grouping
     eles = []
+    for i in cset['actions']:
+        eles.extend(i[1])
+    actions = Set()
+    for ele in eles:
+        actions.add(ele['_action'])
+    if len(actions) == 1:
+        action = action_hash[actions.pop()]
+    else:
+        action = 'edited'
+
     for i in cset['actions']:
         eles.extend(i[1])    
     ele_features = zip(eles, db.matchEach(eles))
