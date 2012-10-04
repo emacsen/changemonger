@@ -72,7 +72,7 @@ def changeset(id):
         eles.extend(i[1])
     # Add changeset tags to objects
     for ele in eles:
-        ele['_changeset_tags'] = change['tags']
+        ele['_changeset_tags'] = changeset['tags']
     # Make internal references based on info we already have
     elements.add_local_way_references(eles)
     elements.add_local_relation_references(eles)
