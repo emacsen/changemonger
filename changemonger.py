@@ -70,13 +70,18 @@ def changeset(id):
     eles = []
     for i in changeset['actions']:
         eles.extend(i[1])
+    # Add changeset tags to objects
+    for ele in eles:
+        ele['_changeset_tags'] = change['tags']
     # Make internal references based on info we already have
     elements.add_local_way_references(eles)
     elements.add_local_relation_references(eles)
     # Now collect the rest from remote data
     elements.add_remote_ways(eles)
     elements.add_remote_relations(eles)
+    # Remove tagless items we have parent objects for
     elements.remove_unnecessary_items(eles)
+    # Sort elements
     elements.sort_elements(eles)
     return changeset
 
@@ -108,3 +113,4 @@ def changeset_sentence(cset):
     sorted_features = elements.sort_grouped(grouped_features)
     english_list =  elements.grouped_to_english(sorted_features)
     return "%s %s %s" % (user, action, english_list)
+
