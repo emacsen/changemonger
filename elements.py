@@ -34,33 +34,6 @@ def retrieve(coll, type, id, version = None):
                 if version == item['version']:
                     return item
 
-def common_name(ele):
-    """Take an element and return its common name"""
-    if ele['tags'].has_key('brand'):
-        a = p.a(ele['tags']['brand'])
-        return("%u %u" % (a, ele['tags']['brand']))
-    elif ele['tags'].has_key('operator'):
-        a = p.a(ele['tags']['operator'])
-        return("%u %u" % (a, ele['tags']['operator']))
-    elif ele['tags'].has_key('name'):
-        return ele['tags']['name']
-    else:
-        return u'unnamed'
-
-def display_name(ele, feature):
-    """Takes an element and feature and returns it's displayable
-    name
-
-    """
-    if not ele.get('tags') or not feature.named:
-        return u"%s" % (p.a(feature.name))
-    elif ( 'name' in ele['tags'].keys() or
-         'brand' in ele['tags'].keys() or
-         'operator' in ele['tags'].keys()):
-        return common_name(ele)
-    else:
-        return u"an unnamed " + feature.name
-
 def get_user(ele):
     """Takes an element and returns a displable username"""
     if ele.has_key('user'):
