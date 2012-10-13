@@ -80,33 +80,26 @@ def changeset(id):
     elements.add_remote_ways(eles)
     elements.add_remote_relations(eles)
     # Remove tagless items we have parent objects for
-    elements.remove_unnecessary_items(eles)
+    eles = elements.remove_unnecessary_items(eles)
     # Sort elements
-    elements.sort_elements(eles)
+    eles = elements.sort_elements(eles)
+    changeset['elements'] = eles
     return changeset
 
 def changeset_sentence(cset):
     """Take a changeset object and return a sentence"""
-    action_hash = {
-        'create': 'added',
-        'modify': 'modified',
-        'delete': 'deleted'}
     # Future versions will be able to handle multiple users
-    user = elements.get_user(cset)
+    #user = elements.get_user(cset)
+    user = cset['user']
     # A future version will do more complex action grouping
-    eles = []
-    for i in cset['actions']:
-        eles.extend(i[1])
+    eles = cset['elements']
     actions = Set()
-    for ele in eles:
-        actions.add(ele['_action'])
+    for action, action_elements in cset['actions']:
+        actions.add(action)
     if len(actions) == 1:
         action = action_hash[actions.pop()]
     else:
         action = 'edited'
-
-    for i in cset['actions']:
-        eles.extend(i[1])    
     ele_features = zip(eles, db.matchEach(eles))
     sorted_ef = elements.sort_by_num_features(ele_features)
     grouped_features = elements.feature_grouper(sorted_ef)

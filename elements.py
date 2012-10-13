@@ -140,9 +140,11 @@ def remove_unnecessary_items(coll):
     tagless but have either a way reference or a relation reference
     """
     l = []
+    n = 0
     for ele in coll:
         if not ele['tags']:
             if ele.has_key('_ways') or ele.has_key('_relations'):
+                n = n + 1
                 continue
         else:
             l.append(ele)
