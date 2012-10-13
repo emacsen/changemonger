@@ -36,13 +36,14 @@ class BaseFeature:
 
     @property
     def prominence(self, ele):
+        """How important a feature is"""
         score = 0
         tags = ele['tags']
         if len(ele['tags']) > 0:
             score += 1
         if ( tags.get('name') or tags.get('brand') or tags.get('operator') ):
             score += 2
-        if tag.get('historical') or tags.get('wikipedia'):
+        if tags.get('historical') or tags.get('wikipedia'):
             score += 3
 
         return score + self._prominence
@@ -77,6 +78,7 @@ class BaseFeature:
         return 0
 
 class SimpleFeature(BaseFeature):
+    """A simple feature (most objects in the yaml files are SimpleFeatures"""
     def __init__(self, name):
         "Init simple feature"
         self.tags = []
@@ -161,9 +163,11 @@ class FeatureDB:
     
     @property
     def all(self):
+        """Return all objects in the database"""
         return self._simple + self._categories.values() + self._magic
 
     def _load_magic_file(self, directory):
+        """Load a magic (plain python) features file"""
         fp, pathname, description = imp.find_module('magic', [directory])
         try:
             module = imp.load_module('magic', fp, pathname, description)
@@ -176,6 +180,7 @@ class FeatureDB:
                 fp.close()
 
     def _load_simple_directory(self, dirname):
+        """Load a directory of feature files"""
         for subdir, dirs, files in os.walk(dirname):
             for fname in files:
                 name, ext = os.path.splitext(fname)
@@ -193,6 +198,7 @@ class FeatureDB:
         return category
 
     def _yaml_item_to_feature(self, item):
+        """Takes a yaml item and returns a Feature object"""
         feature = SimpleFeature(item['name'])
         # type
         if item.has_key('types'):
@@ -256,7 +262,9 @@ class FeatureDB:
                 self._index[feature.id] = feature
     
     def add_index(self, feature):
+        """Add feature id to internal id index"""
         if self.get(feature.id):
+            ### We need a real way to handle this...
             print "BAD BAD BAD!!!! ID CONFLICT BETWEEN %s and %s" % (self.get(feature.id).name, feature.name)
         self._index[feature.id] = feature
 
