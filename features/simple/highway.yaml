@@ -178,3 +178,7 @@
 - name: trunk road
   categories: road
   tags: highway=trunk
+
+- name: turning circle
+  categories: road features
+  tags: highway=turning_circle
