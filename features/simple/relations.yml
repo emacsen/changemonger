@@ -1,0 +1,5 @@
+---
+- name: multipolygon
+  type: relation
+  tags:
+    - type=multipolygon
