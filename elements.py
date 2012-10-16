@@ -38,7 +38,7 @@ def common_name(ele):
     """Take an element and return its common name"""
     if ele['tags'].has_key('brand'):
         a = p.a(ele['tags']['brand'])
-        return a + " " ele['tags']['brand']
+        return a + " " + ele['tags']['brand']
     elif ele['tags'].has_key('operator'):
         a = p.a(ele['tags']['operator'])
         return a + " " + ele['tags']['operator']
