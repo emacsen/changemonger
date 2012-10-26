@@ -1,9 +1,0 @@
--extends "base.haml"
--set title = "Changeset details"
--block content:
-  %h1 << Changeset {{changeset['id'] }}
-  %p
-    {{ sentence }}
-  %pre << {{pprint(changeset)}}
-  %a href="http://www.openstreetmap.org/browse/changeset/{{changeset['id']}}"
-     Link to OSM.org
