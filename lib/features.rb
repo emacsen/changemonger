@@ -56,7 +56,7 @@ module Changemonger::Features
     end
     
     def match(element)
-      if @typecheck(element) && @tagmatch(element) 
+      if typecheck(element) and tagmatch(element) 
         Match(self, element)
       end
     end
